@@ -234,6 +234,7 @@ function MyTurn({
   const [tries, setTries] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const stopRef = useRef<() => void>(() => {});
 
@@ -255,11 +256,12 @@ function MyTurn({
   async function record() {
     setListening(true);
     setFeedback(null);
-    const { promise, stop } = listen();
+    const { promise, stop } = listen({ onProcessing: () => setProcessing(true) });
     stopRef.current = stop;
     try {
       const heard = await promise;
       setListening(false);
+      setProcessing(false);
       if (!heard.length) {
         setFeedback("Ich habe nichts gehört. Noch einmal?");
         return;
@@ -267,9 +269,14 @@ function MyTurn({
       const best = Math.max(...heard.flatMap((h) => answers.map((a) => similarity(h, a))));
       if (best >= 0.7) onDone(tries === 0 && !revealed ? "ok" : "bad");
       else fail(`Verstanden: „${heard[0]}“ – noch einmal?`);
-    } catch {
+    } catch (e) {
       setListening(false);
-      setFeedback("Die Spracherkennung hat nicht funktioniert – du kannst auch tippen.");
+      setProcessing(false);
+      setFeedback(
+        e instanceof Error && e.message === "not-allowed"
+          ? "Kein Zugriff auf das Mikrofon – du kannst auch tippen."
+          : "Die Spracherkennung hat nicht funktioniert – du kannst auch tippen.",
+      );
     }
   }
 
@@ -289,14 +296,15 @@ function MyTurn({
             <button
               type="button"
               className={`flex h-16 w-16 items-center justify-center rounded-full border-2 transition ${
-                listening ? "animate-pulse border-bad bg-bad-soft text-bad" : "border-accent bg-accent-soft text-accent"
+                listening && !processing ? "animate-pulse border-bad bg-bad-soft text-bad" : "border-accent bg-accent-soft text-accent"
               }`}
+              disabled={processing}
               onClick={() => (listening ? stopRef.current() : record())}
               aria-label="Aufnehmen"
             >
               <IconMic className="h-7 w-7" />
             </button>
-            <p className="text-sm text-muted">{listening ? "Ich höre zu …" : "Tippen und sprechen"}</p>
+            <p className="text-sm text-muted">{processing ? "Einen Moment …" : listening ? "Ich höre zu …" : "Tippen und sprechen"}</p>
           </div>
         )}
         {mode === "type" && (

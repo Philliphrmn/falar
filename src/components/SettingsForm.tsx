@@ -119,7 +119,7 @@ export function SettingsForm() {
             {support.recognize
               ? "mit automatischer Erkennung"
               : support.record
-                ? "Nachsprechen mit eigener Aufnahme (automatische Erkennung gibt es in Chrome, Edge und Safari)"
+                ? "Nachsprechen mit eigener Aufnahme"
                 : "Nachsprechen ohne Aufnahme"}
           </p>
         </div>

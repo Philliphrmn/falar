@@ -521,7 +521,7 @@ function ShadowSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"spea
 }
 
 function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"speak">) {
-  const [state, setState] = useState<"idle" | "listening" | "error">("idle");
+  const [state, setState] = useState<"idle" | "listening" | "processing" | "error">("idle");
   const [heard, setHeard] = useState<string | null>(null);
   const [errorText, setErrorText] = useState("");
   const stopRef = useRef<() => void>(() => {});
@@ -529,7 +529,7 @@ function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"s
   async function record() {
     setState("listening");
     setHeard(null);
-    const { promise, stop } = listen();
+    const { promise, stop } = listen({ onProcessing: () => setState("processing") });
     stopRef.current = stop;
     try {
       const alternatives = await promise;
@@ -547,7 +547,13 @@ function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"s
     } catch (e) {
       setState("error");
       const msg = e instanceof Error ? e.message : "";
-      setErrorText(msg === "not-allowed" ? "Kein Zugriff auf das Mikrofon." : "Die Spracherkennung hat nicht funktioniert.");
+      setErrorText(
+        msg === "not-allowed"
+          ? "Kein Zugriff auf das Mikrofon – bitte in den Browser-Einstellungen erlauben."
+          : msg === "no-microphone"
+            ? "Kein Mikrofon gefunden."
+            : "Die Spracherkennung hat nicht funktioniert. Versuch es noch einmal.",
+      );
     }
   }
 
@@ -566,13 +572,17 @@ function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"s
           className={`flex h-20 w-20 items-center justify-center rounded-full border-2 transition ${
             state === "listening" ? "animate-pulse border-bad bg-bad-soft text-bad" : "border-accent bg-accent-soft text-accent"
           }`}
-          disabled={locked}
+          disabled={locked || state === "processing"}
           onClick={() => (state === "listening" ? stopRef.current() : record())}
           aria-label="Aufnehmen"
         >
           <IconMic className="h-8 w-8" />
         </button>
-        <p className="text-sm text-muted">{state === "listening" ? "Ich höre zu … (zum Beenden tippen)" : "Tippen und den Satz sprechen"}</p>
+        <p className="text-sm text-muted">{state === "listening"
+            ? "Ich höre zu …"
+            : state === "processing"
+              ? "Einen Moment …"
+              : "Tippen und den Satz sprechen"}</p>
         {heard !== null && !locked && (
           <p className="text-center text-sm">
             {heard ? (
