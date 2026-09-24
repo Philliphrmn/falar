@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { saveSettings } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
-import { canRecognize, canSpeak, getPortugueseVoice, hasEuropeanVoice, setSpeechRate, speak } from "@/lib/speech";
+import { canRecognize, canRecord, canSpeak, getPortugueseVoice, hasEuropeanVoice, hasRecordedAudio, setSpeechRate, speak } from "@/lib/speech";
 import { useApp } from "./AppProvider";
 
 const GOALS = [
@@ -17,7 +17,7 @@ export function SettingsForm() {
   const { session, settings, setSettingsLocal } = useApp();
   const [status, setStatus] = useState<string | null>(null);
   const [voice, setVoice] = useState<{ name: string; european: boolean } | null>(null);
-  const [support, setSupport] = useState({ speak: true, recognize: true });
+  const [support, setSupport] = useState({ speak: true, recognize: true, record: true });
 
   useEffect(() => {
     const read = () => {
@@ -26,7 +26,7 @@ export function SettingsForm() {
     };
     const t0 = setTimeout(() => {
       read();
-      setSupport({ speak: canSpeak(), recognize: canRecognize() });
+      setSupport({ speak: canSpeak(), recognize: canRecognize(), record: canRecord() });
     }, 0);
     const t1 = setTimeout(read, 500);
     return () => {
@@ -103,17 +103,24 @@ export function SettingsForm() {
         </button>
         <div className="mt-4 space-y-1 text-sm text-muted">
           {!support.speak && <p className="text-bad">Dein Browser unterstützt keine Sprachausgabe.</p>}
-          {support.speak && voice && <p>Stimme: {voice.name}</p>}
-          {support.speak && voice && !voice.european && (
+          {hasRecordedAudio && <p>Stimmen: professionelle Aufnahmen in europäischem Portugiesisch.</p>}
+          {!hasRecordedAudio && support.speak && voice && <p>Stimme: {voice.name}</p>}
+          {!hasRecordedAudio && support.speak && voice && !voice.european && (
             <p className="text-warm">
               Es ist keine europäisch-portugiesische Stimme (pt-PT) installiert – die Aussprache klingt brasilianisch.
               Installiere in den Systemeinstellungen deines Geräts eine Stimme „Portugiesisch (Portugal)“.
             </p>
           )}
-          {support.speak && !voice && <p className="text-warm">Keine portugiesische Stimme gefunden. Installiere „Portugiesisch (Portugal)“ in deinen Systemeinstellungen.</p>}
+          {!hasRecordedAudio && support.speak && !voice && (
+            <p className="text-warm">Keine portugiesische Stimme gefunden. Installiere „Portugiesisch (Portugal)“ in deinen Systemeinstellungen.</p>
+          )}
           <p>
             Sprechübungen:{" "}
-            {support.recognize ? "verfügbar" : "in diesem Browser nicht verfügbar (am besten Chrome, Edge oder Safari nutzen)"}
+            {support.recognize
+              ? "mit automatischer Erkennung"
+              : support.record
+                ? "Nachsprechen mit eigener Aufnahme (automatische Erkennung gibt es in Chrome, Edge und Safari)"
+                : "Nachsprechen ohne Aufnahme"}
           </p>
         </div>
       </section>

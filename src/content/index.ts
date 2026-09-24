@@ -1,8 +1,8 @@
 import { course } from "./course";
-import type { GrammarNote, Item, LessonDef, UnitDef } from "./types";
+import type { Dialogue, DialogueLine, GrammarNote, Item, LessonDef, SpeakingTask, UnitDef } from "./types";
 
 export { course };
-export type { GrammarNote, Item, LessonDef, UnitDef };
+export type { Dialogue, DialogueLine, GrammarNote, Item, LessonDef, SpeakingTask, UnitDef };
 
 // Akzente bleiben erhalten, sonst fallen z. B. „está“ und „esta“ zusammen
 function slug(text: string) {

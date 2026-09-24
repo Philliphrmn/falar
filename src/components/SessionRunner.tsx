@@ -18,6 +18,8 @@ type Props = {
   title: string;
   build: (opts: GenOptions) => Exercise[];
   xpBase: number;
+  /** Fortschritt unter dieser ID speichern (z. B. Unit-Abschluss ohne eigene Lektion) */
+  progressId?: string;
 };
 
 type Phase = "intro" | "play" | "saving" | "done";
@@ -42,6 +44,7 @@ function Session({
   title,
   build,
   xpBase,
+  progressId,
   restart,
   withIntro,
 }: Props & { restart: () => void; withIntro: boolean }) {
@@ -72,7 +75,10 @@ function Session({
         xp,
         reviews: app.reviews,
         today: app.today,
-        lesson: lesson ? { id: lesson.id, score: s.score, prev: app.progress.get(lesson.id) } : undefined,
+        lesson: (() => {
+          const id = progressId ?? lesson?.id;
+          return id ? { id, score: s.score, prev: app.progress.get(id) } : undefined;
+        })(),
       });
       await app.refresh();
       setSaveError(null);
@@ -162,9 +168,10 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   );
 }
 
-export function GrammarCard({ note }: { note: GrammarNote }) {
+export function GrammarCard({ note, label }: { note: GrammarNote; label?: string }) {
   return (
     <div className="card p-6">
+      {label && <p className="mb-1 text-xs uppercase tracking-wide text-accent">{label}</p>}
       <h2 className="font-serif text-xl">{note.title}</h2>
       <div className="mt-3 space-y-3 leading-relaxed">
         {note.body.map((p, i) => (
@@ -198,6 +205,11 @@ function Intro({ lesson, onStart, onExit }: { lesson: LessonDef; onStart: () => 
       {lesson.grammar && (
         <div className="mt-8">
           <GrammarCard note={lesson.grammar} />
+        </div>
+      )}
+      {lesson.sound && (
+        <div className="mt-4">
+          <GrammarCard note={lesson.sound} label="Aussprache" />
         </div>
       )}
 

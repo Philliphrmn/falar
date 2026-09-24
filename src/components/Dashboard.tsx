@@ -3,14 +3,22 @@
 import Link from "next/link";
 import { allLessons, course } from "@/content";
 import { addDays, dayKey } from "@/lib/date";
+import { unitProgressId } from "@/lib/exercises";
 import { useApp } from "./AppProvider";
-import { IconCheck, IconFlame, IconRepeat } from "./icons";
+import { IconCheck, IconFlame, IconMic, IconRepeat } from "./icons";
 
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 export function Dashboard() {
   const { progress, today, settings, streak, dueIds, activity, reviews, loaded } = useApp();
-  const next = allLessons.find((l) => !progress.has(l.id));
+  // Nächster Schritt: nächste offene Lektion – oder der Abschluss einer fertig gelernten Unit
+  const steps = course.flatMap((u) => [
+    ...u.lessons.map((l) => ({ id: l.id, href: `/lektion/${l.id}`, title: l.title, subtitle: l.subtitle })),
+    ...(u.speaking
+      ? [{ id: unitProgressId(u.id), href: `/abschluss/${u.id}`, title: `Abschluss: ${u.title}`, subtitle: "Wiederholen, Rollenspiel und frei sprechen" }]
+      : []),
+  ]);
+  const nextStep = steps.find((st) => !progress.has(st.id));
   const todayXp = today?.xp ?? 0;
   const goal = settings.daily_goal_xp;
   const done = allLessons.filter((l) => progress.has(l.id)).length;
@@ -26,13 +34,13 @@ export function Dashboard() {
     <div className={loaded ? "" : "opacity-60"}>
       <section className="grid gap-4 md:grid-cols-3">
         <div className="card p-6 md:col-span-2">
-          <p className="text-sm text-muted">{next ? (done ? "Weiter geht's mit" : "Los geht's mit") : "Kurs abgeschlossen"}</p>
-          <h1 className="mt-1 font-serif text-3xl">{next ? next.title : "Parabéns!"}</h1>
-          <p className="mt-1 text-muted">{next ? next.subtitle : "Du hast alle Lektionen geschafft – wiederhole regelmäßig, damit es sitzt."}</p>
+          <p className="text-sm text-muted">{nextStep ? (done ? "Weiter geht's mit" : "Los geht's mit") : "Kurs abgeschlossen"}</p>
+          <h1 className="mt-1 font-serif text-3xl">{nextStep ? nextStep.title : "Parabéns!"}</h1>
+          <p className="mt-1 text-muted">{nextStep ? nextStep.subtitle : "Du hast alle Lektionen geschafft – wiederhole regelmäßig, damit es sitzt."}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            {next && (
-              <Link href={`/lektion/${next.id}`} className="btn-primary">
-                Lektion starten
+            {nextStep && (
+              <Link href={nextStep.href} className="btn-primary">
+                Starten
               </Link>
             )}
             <Link href="/wiederholen" className="btn-ghost">
@@ -95,7 +103,7 @@ export function Dashboard() {
               <ol className="card divide-y divide-line overflow-hidden">
                 {unit.lessons.map((l) => {
                   const p = progress.get(l.id);
-                  const isNext = next?.id === l.id;
+                  const isNext = nextStep?.id === l.id;
                   return (
                     <li key={l.id}>
                       <Link
@@ -124,6 +132,35 @@ export function Dashboard() {
                     </li>
                   );
                 })}
+                {unit.speaking && (() => {
+                  const cp = progress.get(unitProgressId(unit.id));
+                  const isNext = nextStep?.id === unitProgressId(unit.id);
+                  return (
+                    <li>
+                      <Link
+                        href={`/abschluss/${unit.id}`}
+                        className={`flex items-center gap-4 px-5 py-4 transition hover:bg-surface-2 ${isNext ? "bg-accent-soft" : ""}`}
+                      >
+                        <span
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${
+                            cp ? "border-ok bg-ok text-bg" : isNext ? "border-accent text-accent" : "border-line text-muted"
+                          }`}
+                        >
+                          {cp ? <IconCheck className="h-4 w-4" /> : <IconMic className="h-4 w-4" />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-medium">Abschluss</span>
+                          <span className="block truncate text-sm text-muted">Wiederholen, Rollenspiel und frei sprechen</span>
+                        </span>
+                        {cp ? (
+                          <span className="text-right text-xs text-muted">{cp.times_completed}× geübt</span>
+                        ) : isNext ? (
+                          <span className="text-sm font-medium text-accent">Start →</span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  );
+                })()}
               </ol>
             </section>
           );

@@ -17,6 +17,7 @@ import {
   type ExerciseProps,
   type Outcome,
 } from "./Exercises";
+import { DialogueEx, ProduceEx, RoleplayEx } from "./Dialogue";
 
 export type SessionSummary = {
   results: ItemResult[];
@@ -49,6 +50,12 @@ function promptOf(ex: Exercise) {
       return ex.de;
     case "match":
       return "Paare";
+    case "dialogue":
+      return ex.dialogue.question.q;
+    case "roleplay":
+      return "Rollenspiel";
+    case "produce":
+      return ex.task.prompt;
   }
 }
 
@@ -141,7 +148,7 @@ export function Player({ exercises, onExit, onFinish }: Props) {
   const progress = Math.min(100, (100 * solvedCount) / total);
   const props = { locked: !!outcome, setCheck, complete: record, skipSpeaking };
   const ex = current.ex;
-  const selfChecking = ex.kind === "match" || ex.kind === "speak";
+  const selfChecking = ex.kind === "match" || ex.kind === "speak" || ex.kind === "roleplay" || ex.kind === "produce";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -162,23 +169,24 @@ export function Player({ exercises, onExit, onFinish }: Props) {
         <ExerciseView key={`${ex.key}-${current.attempt}`} ex={ex} {...props} />
       </div>
 
-      <footer
-        className={`fixed inset-x-0 bottom-0 border-t transition-colors ${
-          !outcome ? "border-line bg-bg" : outcome.correct ? "border-ok/30 bg-ok-soft" : "border-bad/30 bg-bad-soft"
-        }`}
-      >
-        <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center">
-          <div className="flex-1">
-            {outcome && (
-              <div className={outcome.correct ? "text-ok" : "text-bad"}>
-                <p className="flex items-center gap-2 text-lg font-semibold">
-                  {outcome.correct ? <IconCheck /> : <IconClose />}
-                  {outcome.skipped ? "Übersprungen" : outcome.correct ? "Richtig!" : "Nicht ganz."}
-                </p>
-                {!outcome.correct && outcome.solution && (
-                  <p className="mt-1 text-ink">
-                    Richtig: <span lang="pt-PT" className="font-medium">{outcome.solution}</span>
+      {(outcome || !selfChecking) && (
+        <footer
+          className={`fixed inset-x-0 bottom-0 border-t transition-colors ${
+            !outcome ? "border-line bg-bg" : outcome.correct ? "border-ok/30 bg-ok-soft" : "border-bad/30 bg-bad-soft"
+          }`}
+        >
+          <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              {outcome && (
+                <div className={outcome.correct ? "text-ok" : "text-bad"}>
+                  <p className="flex items-center gap-2 text-lg font-semibold">
+                    {outcome.correct ? <IconCheck /> : <IconClose />}
+                    {outcome.skipped ? "Übersprungen" : outcome.correct ? "Richtig!" : "Nicht ganz."}
                   </p>
+                  {!outcome.correct && outcome.solution && (
+                    <p className="mt-1 text-ink">
+                      Richtig: <span lang="pt-PT" className="font-medium">{outcome.solution}</span>
+                    </p>
                 )}
                 {outcome.note && <p className="mt-1 text-sm text-ink/80">{outcome.note}</p>}
               </div>
@@ -202,6 +210,7 @@ export function Player({ exercises, onExit, onFinish }: Props) {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }
@@ -224,5 +233,11 @@ function ExerciseView({ ex, ...props }: { ex: Exercise } & Omit<ExerciseProps<"c
       return <FillEx ex={ex} {...props} />;
     case "speak":
       return <SpeakEx ex={ex} {...props} />;
+    case "dialogue":
+      return <DialogueEx ex={ex} {...props} />;
+    case "roleplay":
+      return <RoleplayEx ex={ex} {...props} />;
+    case "produce":
+      return <ProduceEx ex={ex} {...props} />;
   }
 }

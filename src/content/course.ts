@@ -10,6 +10,28 @@ export const course: UnitDef[] = [
     id: "u1",
     title: "Primeiros passos",
     description: "Begrüßen, sich vorstellen, Herkunft und Zahlen",
+    speaking: [
+      {
+        prompt: "Stell dich vor: Begrüße, sag deinen Namen, woher du kommst, wo du wohnst und wie alt du bist.",
+        hints: ["Olá", "Chamo-me …", "Sou da …", "Moro em …", "Tenho … anos"],
+        model: [
+          { pt: "Olá, bom dia!", de: "Hallo, guten Morgen!" },
+          { pt: "Chamo-me Tom.", de: "Ich heiße Tom." },
+          { pt: "Sou da Alemanha, mas moro em Lisboa.", de: "Ich komme aus Deutschland, aber ich wohne in Lissabon." },
+          { pt: "Tenho vinte anos. Muito prazer!", de: "Ich bin zwanzig Jahre alt. Sehr erfreut!" },
+        ],
+      },
+      {
+        prompt: "Du lernst jemanden kennen. Frag nach Name, Herkunft, Wohnort und Alter.",
+        hints: ["Como …?", "De onde …?", "Onde …?", "Quantos anos …?"],
+        model: [
+          { pt: "Como te chamas?", de: "Wie heißt du?" },
+          { pt: "De onde és?", de: "Woher kommst du?" },
+          { pt: "Onde moras?", de: "Wo wohnst du?" },
+          { pt: "Quantos anos tens?", de: "Wie alt bist du?" },
+        ],
+      },
+    ],
     lessons: [
       {
         id: "ola",
@@ -50,6 +72,29 @@ export const course: UnitDef[] = [
           ["Até logo!", "Bis später!"],
           ["Desculpe, não percebo.", "Entschuldigung, ich verstehe nicht."],
         ],
+        sound: {
+          title: "Das stumme e am Wortende",
+          body: [
+            "Unbetontes e am Wortende wird in Portugal kaum gesprochen: noite klingt wie „noit“, desculpe wie „dschkulp“.",
+            "Das ist einer der auffälligsten Unterschiede zum brasilianischen Portugiesisch, wo man „noitschi“ sagt.",
+          ],
+          examples: [
+            { pt: "Boa noite!", de: "Guten Abend!" },
+            { pt: "Desculpe.", de: "Entschuldigung." },
+          ],
+        },
+        dialogue: {
+          situation: "Deine Nachbarin hält dir morgens die Tür auf.",
+          partner: "Dona Rosa",
+          lines: [
+            ["a", "Bom dia!", "Guten Morgen!"],
+            ["b", "Bom dia! Obrigado.", "Guten Morgen! Danke.", ["Bom dia! Obrigada.", "Bom dia, obrigado.", "Bom dia, obrigada."]],
+            ["a", "De nada.", "Gern geschehen."],
+            ["b", "Até logo!", "Bis später!", ["Adeus!"]],
+            ["a", "Até logo!", "Bis später!"],
+          ],
+          question: { q: "Was antwortet Dona Rosa auf dein Danke?", options: ["Gern geschehen", "Guten Abend", "Entschuldigung"] },
+        },
       },
       {
         id: "quem-es",
@@ -93,6 +138,30 @@ export const course: UnitDef[] = [
           ["Muito prazer!", "Sehr erfreut!"],
           ["Tu és o Pedro?", "Bist du Pedro?", ["És o Pedro?"]],
         ],
+        sound: {
+          title: "s klingt oft wie sch",
+          body: [
+            "Am Wortende und vor Konsonanten spricht man s in Portugal wie „sch“: és ≈ „äsch“, português ≈ „purtugesch“.",
+            "Zwischen zwei Vokalen bleibt es ein stimmhaftes s: portuguesa ≈ „purtugesa“.",
+          ],
+          examples: [
+            { pt: "Tu és alemão?", de: "Bist du Deutscher?" },
+            { pt: "Ela é portuguesa.", de: "Sie ist Portugiesin." },
+          ],
+        },
+        dialogue: {
+          situation: "Auf einer Party in Lissabon lernst du jemanden kennen.",
+          partner: "Inês",
+          lines: [
+            ["a", "Olá! Como te chamas?", "Hallo! Wie heißt du?"],
+            ["b", "Chamo-me Tom. E tu?", "Ich heiße Tom. Und du?", ["Eu chamo-me Tom. E tu?"]],
+            ["a", "Chamo-me Inês. És alemão?", "Ich heiße Inês. Bist du Deutscher?"],
+            ["b", "Sim, sou alemão. E tu és portuguesa?", "Ja, ich bin Deutscher. Und bist du Portugiesin?", ["Sim, sou alemão. És portuguesa?", "Sim, eu sou alemão. E tu és portuguesa?"]],
+            ["a", "Sou, sim. Muito prazer!", "Ja, bin ich. Sehr erfreut!"],
+            ["b", "Muito prazer!", "Sehr erfreut!"],
+          ],
+          question: { q: "Woher kommt Inês?", options: ["Aus Portugal", "Aus Deutschland", "Aus Brasilien"] },
+        },
       },
       {
         id: "de-onde",
@@ -132,6 +201,30 @@ export const course: UnitDef[] = [
           ["Lisboa é uma cidade bonita.", "Lissabon ist eine schöne Stadt."],
           ["Ele mora no Porto.", "Er wohnt in Porto."],
         ],
+        sound: {
+          title: "nh und das s in Lisboa",
+          body: [
+            "nh klingt wie „nj“, ähnlich wie in Champagner: Alemanha ≈ „alemanja“.",
+            "Vor stimmhaften Konsonanten wie b, d, g, m wird s zu einem weichen „sch“ wie in Journal: Lisboa ≈ „lischboa“ mit weichem sch.",
+          ],
+          examples: [
+            { pt: "Sou da Alemanha.", de: "Ich komme aus Deutschland." },
+            { pt: "Moro em Lisboa.", de: "Ich wohne in Lissabon." },
+          ],
+        },
+        dialogue: {
+          situation: "Im Zug kommst du mit einer Mitreisenden ins Gespräch.",
+          partner: "Sofia",
+          lines: [
+            ["a", "De onde és?", "Woher kommst du?"],
+            ["b", "Sou da Alemanha. E tu?", "Ich komme aus Deutschland. Und du?", ["Eu sou da Alemanha. E tu?"]],
+            ["a", "Sou do Porto, mas moro em Lisboa.", "Ich komme aus Porto, aber ich wohne in Lissabon."],
+            ["b", "Lisboa é uma cidade bonita!", "Lissabon ist eine schöne Stadt!"],
+            ["a", "É, sim. E tu, onde moras?", "Ja, das stimmt. Und du, wo wohnst du?"],
+            ["b", "Moro em Berlim.", "Ich wohne in Berlin.", ["Eu moro em Berlim."]],
+          ],
+          question: { q: "Wo wohnt Sofia?", options: ["In Lissabon", "In Porto", "In Berlin"] },
+        },
       },
       {
         id: "numeros",
@@ -171,6 +264,29 @@ export const course: UnitDef[] = [
           ["Ela tem oito anos.", "Sie ist acht Jahre alt."],
           ["Tenho três irmãos.", "Ich habe drei Geschwister."],
         ],
+        sound: {
+          title: "Unbetontes o klingt wie u",
+          body: [
+            "Ein unbetontes o, besonders am Wortende, klingt in Portugal wie „u“: quatro ≈ „kwatru“, cinco ≈ „ßinku“, oito ≈ „oitu“.",
+            "Betontes o bleibt o: dois, nove.",
+          ],
+          examples: [
+            { pt: "quatro, cinco, oito", de: "vier, fünf, acht" },
+            { pt: "Tenho vinte anos.", de: "Ich bin zwanzig Jahre alt." },
+          ],
+        },
+        dialogue: {
+          situation: "Beim Sprachtandem stellt ihr euch gegenseitig Fragen.",
+          partner: "Marta",
+          lines: [
+            ["a", "Quantos anos tens?", "Wie alt bist du?"],
+            ["b", "Tenho vinte anos. E tu?", "Ich bin zwanzig Jahre alt. Und du?", ["Eu tenho vinte anos. E tu?"]],
+            ["a", "Eu também tenho vinte!", "Ich bin auch zwanzig!"],
+            ["b", "Tens irmãos?", "Hast du Geschwister?", ["Tu tens irmãos?"]],
+            ["a", "Tenho dois irmãos e uma irmã.", "Ich habe zwei Brüder und eine Schwester."],
+          ],
+          question: { q: "Wie viele Geschwister hat Marta?", options: ["Drei", "Zwei", "Eins"] },
+        },
       },
     ],
   },
@@ -178,6 +294,35 @@ export const course: UnitDef[] = [
     id: "u2",
     title: "O dia a dia",
     description: "Café, Essen, Familie und Befinden",
+    speaking: [
+      {
+        prompt: "Bestell im Café ein Getränk und etwas zu essen. Dann bitte um die Rechnung.",
+        hints: ["Queria …", "se faz favor", "A conta …"],
+        model: [
+          { pt: "Bom dia! Queria um galão e um pastel de nata, se faz favor.", de: "Guten Morgen! Ich hätte gern einen Milchkaffee und ein Puddingtörtchen, bitte." },
+          { pt: "A conta, se faz favor.", de: "Die Rechnung, bitte." },
+          { pt: "Obrigado!", de: "Danke!" },
+        ],
+      },
+      {
+        prompt: "Erzähl, was du gern isst und trinkst – und was nicht.",
+        hints: ["Gosto de …", "Não gosto de …", "Bebo …", "ao jantar"],
+        model: [
+          { pt: "Gosto muito de peixe.", de: "Ich mag Fisch sehr." },
+          { pt: "Não gosto de carne.", de: "Ich mag kein Fleisch." },
+          { pt: "Ao jantar bebo vinho ou água.", de: "Zum Abendessen trinke ich Wein oder Wasser." },
+        ],
+      },
+      {
+        prompt: "Stell deine Familie vor: Wer gehört dazu, wie heißen sie, wo wohnen sie?",
+        hints: ["o meu pai", "a minha mãe", "Tenho …", "chama-se", "moram em"],
+        model: [
+          { pt: "Tenho uma irmã e um irmão.", de: "Ich habe eine Schwester und einen Bruder." },
+          { pt: "A minha mãe chama-se Ana e o meu pai chama-se João.", de: "Meine Mutter heißt Ana und mein Vater heißt João." },
+          { pt: "Os meus pais moram em Hamburgo.", de: "Meine Eltern wohnen in Hamburg." },
+        ],
+      },
+    ],
     lessons: [
       {
         id: "cafe",
@@ -219,6 +364,30 @@ export const course: UnitDef[] = [
           ["Queria um sumo de laranja.", "Ich hätte gern einen Orangensaft."],
           ["Uma água com gás, se faz favor.", "Ein Wasser mit Kohlensäure, bitte.", ["Uma água com gás, por favor."]],
         ],
+        sound: {
+          title: "Die Nasale ão und ã",
+          body: [
+            "ão ist ein nasaler Doppellaut – wie „au“, durch die Nase gesprochen, ohne ein n am Ende: pão, galão, não.",
+            "ã allein klingt wie ein nasales, dumpfes a: maçã, irmã.",
+          ],
+          examples: [
+            { pt: "Um galão e um pão.", de: "Ein Milchkaffee und ein Brot." },
+            { pt: "Não, obrigado.", de: "Nein, danke." },
+          ],
+        },
+        dialogue: {
+          situation: "Du bestellst in einer pastelaria in Lissabon.",
+          partner: "Empregado",
+          lines: [
+            ["a", "Bom dia! O que deseja?", "Guten Morgen! Was darf es sein?"],
+            ["b", "Queria uma bica, se faz favor.", "Ich hätte gern einen Espresso, bitte.", ["Queria uma bica, por favor."]],
+            ["a", "Com açúcar?", "Mit Zucker?"],
+            ["b", "Não, sem açúcar. E um pastel de nata.", "Nein, ohne Zucker. Und ein Puddingtörtchen.", ["Não, sem açúcar, e um pastel de nata."]],
+            ["a", "Muito bem. Mais alguma coisa?", "Sehr gut. Sonst noch etwas?"],
+            ["b", "Não, obrigado. A conta, se faz favor.", "Nein, danke. Die Rechnung, bitte.", ["Não, obrigada. A conta, se faz favor.", "Não, obrigado. A conta, por favor.", "Não, obrigada. A conta, por favor."]],
+          ],
+          question: { q: "Was bestellst du?", options: ["Einen Espresso ohne Zucker und ein Puddingtörtchen", "Einen Milchkaffee mit Zucker", "Einen Orangensaft und ein Brot"] },
+        },
       },
       {
         id: "comer",
@@ -257,6 +426,29 @@ export const course: UnitDef[] = [
           ["O jantar é às oito.", "Das Abendessen ist um acht."],
           ["Bebo café ao pequeno-almoço.", "Ich trinke Kaffee zum Frühstück.", ["Eu bebo café ao pequeno-almoço."]],
         ],
+        sound: {
+          title: "x und ei",
+          body: [
+            "x klingt am Wortanfang und nach ei meist wie „sch“: peixe ≈ „päisch“.",
+            "ei spricht man in Lissabon fast wie „äi“ mit dunklem a: peixe, queijo.",
+          ],
+          examples: [
+            { pt: "Gosto de peixe.", de: "Ich mag Fisch." },
+            { pt: "o peixe", de: "der Fisch" },
+          ],
+        },
+        dialogue: {
+          situation: "Ihr plant ein Abendessen und sprecht über Vorlieben.",
+          partner: "Rui",
+          lines: [
+            ["a", "Gostas de peixe?", "Magst du Fisch?"],
+            ["b", "Gosto muito! E tu?", "Sehr! Und du?", ["Sim, gosto muito! E tu?", "Gosto muito. E tu?"]],
+            ["a", "Eu não gosto de peixe. Gosto de carne.", "Ich mag keinen Fisch. Ich mag Fleisch."],
+            ["b", "Bebes vinho ao jantar?", "Trinkst du Wein zum Abendessen?", ["Tu bebes vinho ao jantar?"]],
+            ["a", "Hoje não. Bebo água.", "Heute nicht. Ich trinke Wasser."],
+          ],
+          question: { q: "Was mag Rui?", options: ["Fleisch", "Fisch", "Bier"] },
+        },
       },
       {
         id: "familia",
@@ -295,6 +487,30 @@ export const course: UnitDef[] = [
           ["Tens irmãos?", "Hast du Geschwister?", ["Tu tens irmãos?"]],
           ["A minha filha tem dez anos.", "Meine Tochter ist zehn Jahre alt."],
         ],
+        sound: {
+          title: "lh und ãe",
+          body: [
+            "lh klingt wie „lj“, ähnlich wie in Brillant: filho ≈ „filju“, filha ≈ „filja“.",
+            "ãe in mãe ist ein nasales „äi“ – ungefähr „mãi“ durch die Nase.",
+          ],
+          examples: [
+            { pt: "o meu filho", de: "mein Sohn" },
+            { pt: "a minha mãe", de: "meine Mutter" },
+          ],
+        },
+        dialogue: {
+          situation: "Eine Freundin schaut sich deine Fotos an.",
+          partner: "Catarina",
+          lines: [
+            ["a", "Quem é esta?", "Wer ist das?"],
+            ["b", "Esta é a minha mãe.", "Das ist meine Mutter.", ["É a minha mãe."]],
+            ["a", "E este?", "Und der hier?"],
+            ["b", "É o meu pai. Chama-se João.", "Das ist mein Vater. Er heißt João.", ["É o meu pai, chama-se João.", "Este é o meu pai. Chama-se João."]],
+            ["a", "Tens irmãos?", "Hast du Geschwister?"],
+            ["b", "Tenho uma irmã.", "Ich habe eine Schwester.", ["Eu tenho uma irmã."]],
+          ],
+          question: { q: "Wie heißt dein Vater?", options: ["João", "Pedro", "Rui"] },
+        },
       },
       {
         id: "estar",
@@ -333,6 +549,29 @@ export const course: UnitDef[] = [
           ["Estou a trabalhar.", "Ich arbeite gerade.", ["Eu estou a trabalhar."]],
           ["O Pedro está aqui?", "Ist Pedro hier?"],
         ],
+        sound: {
+          title: "es- am Wortanfang",
+          body: [
+            "Unbetontes e am Wortanfang verschwindet fast, und s davor klingt wie „sch“: estou ≈ „schtô“, estás ≈ „schtasch“.",
+            "So klingt ein ganzer Satz schnell ganz anders als geschrieben – hör genau hin.",
+          ],
+          examples: [
+            { pt: "Estou bem.", de: "Mir geht es gut." },
+            { pt: "Como estás?", de: "Wie geht es dir?" },
+          ],
+        },
+        dialogue: {
+          situation: "Du triffst eine Kollegin im Flur.",
+          partner: "Joana",
+          lines: [
+            ["a", "Olá! Como estás?", "Hallo! Wie geht es dir?"],
+            ["b", "Estou bem, obrigado. E tu?", "Mir geht es gut, danke. Und dir?", ["Estou bem, obrigada. E tu?", "Bem, obrigado. E tu?", "Bem, obrigada. E tu?"]],
+            ["a", "Estou cansada. Estou a trabalhar muito.", "Ich bin müde. Ich arbeite gerade viel."],
+            ["b", "O Pedro está aqui?", "Ist Pedro hier?"],
+            ["a", "Não, hoje está em casa.", "Nein, heute ist er zu Hause."],
+          ],
+          question: { q: "Warum ist Joana müde?", options: ["Sie arbeitet gerade viel", "Sie ist krank", "Sie war am Strand"] },
+        },
       },
     ],
   },
@@ -340,6 +579,35 @@ export const course: UnitDef[] = [
     id: "u3",
     title: "Na cidade",
     description: "Wege, Verkehrsmittel, Einkaufen und Zeit",
+    speaking: [
+      {
+        prompt: "Du suchst den Bahnhof. Sprich jemanden höflich an, frag nach dem Weg und ob es weit ist. Bedank dich.",
+        hints: ["Desculpe", "Onde fica …?", "longe", "Obrigado/a"],
+        model: [
+          { pt: "Desculpe, onde fica a estação?", de: "Entschuldigung, wo ist der Bahnhof?" },
+          { pt: "Fica longe?", de: "Ist es weit?" },
+          { pt: "Obrigado!", de: "Danke!" },
+        ],
+      },
+      {
+        prompt: "Auf dem Markt: Kauf ein Kilo Äpfel, frag nach dem Preis und ob du mit Karte zahlen kannst.",
+        hints: ["Queria …", "Quanto custa?", "Posso …?"],
+        model: [
+          { pt: "Bom dia! Queria um quilo de maçãs.", de: "Guten Morgen! Ich hätte gern ein Kilo Äpfel." },
+          { pt: "Quanto custa?", de: "Was kostet das?" },
+          { pt: "Posso pagar com cartão?", de: "Kann ich mit Karte bezahlen?" },
+        ],
+      },
+      {
+        prompt: "Erzähl von deiner Woche: An welchen Tagen arbeitest du, und was machst du am Wochenende?",
+        hints: ["de segunda a sexta", "ao sábado", "ao domingo", "vou …"],
+        model: [
+          { pt: "De segunda a sexta trabalho.", de: "Von Montag bis Freitag arbeite ich." },
+          { pt: "Ao sábado vou ao mercado.", de: "Samstags gehe ich auf den Markt." },
+          { pt: "Ao domingo vou à praia.", de: "Sonntags gehe ich an den Strand." },
+        ],
+      },
+    ],
     lessons: [
       {
         id: "onde-fica",
@@ -379,6 +647,28 @@ export const course: UnitDef[] = [
           ["Siga em frente.", "Gehen Sie geradeaus."],
           ["O museu fica longe?", "Ist das Museum weit weg?"],
         ],
+        sound: {
+          title: "Zwei verschiedene r",
+          body: [
+            "Am Wortanfang und bei rr klingt r wie das deutsche Rachen-r: rua, carro.",
+            "Ein einzelnes r zwischen Vokalen ist ein kurz getipptes Zungen-r: direita, praia.",
+          ],
+          examples: [
+            { pt: "a rua", de: "die Straße" },
+            { pt: "à direita", de: "rechts" },
+          ],
+        },
+        dialogue: {
+          situation: "Du suchst in einer fremden Stadt den Bahnhof.",
+          partner: "Senhor Alves",
+          lines: [
+            ["b", "Desculpe, onde fica a estação?", "Entschuldigung, wo ist der Bahnhof?", ["Desculpe, onde é a estação?"]],
+            ["a", "A estação? Fica perto. Siga em frente e depois à direita.", "Der Bahnhof? Er ist in der Nähe. Gehen Sie geradeaus und dann rechts."],
+            ["b", "Em frente e à direita. Obrigado!", "Geradeaus und rechts. Danke!", ["Em frente e à direita. Obrigada!"]],
+            ["a", "De nada!", "Gern geschehen!"],
+          ],
+          question: { q: "Wie kommst du zum Bahnhof?", options: ["Geradeaus, dann rechts", "Links, dann geradeaus", "Mit dem Bus"] },
+        },
       },
       {
         id: "transportes",
@@ -417,6 +707,30 @@ export const course: UnitDef[] = [
           ["Vou a pé.", "Ich gehe zu Fuß.", ["Eu vou a pé."]],
           ["Apanho o elétrico.", "Ich nehme die Straßenbahn.", ["Eu apanho o elétrico."]],
         ],
+        sound: {
+          title: "-agem und -em am Wortende",
+          body: [
+            "Endungen auf -em klingen nasal wie „äi“: sem, bem, a paragem ≈ „paraschäi“.",
+            "Das g vor e klingt wie das weiche sch in Journal.",
+          ],
+          examples: [
+            { pt: "a paragem", de: "die Haltestelle" },
+            { pt: "Vou a pé.", de: "Ich gehe zu Fuß." },
+          ],
+        },
+        dialogue: {
+          situation: "Am Fahrkartenschalter in Lissabon.",
+          partner: "Funcionária",
+          lines: [
+            ["b", "Um bilhete para o Porto, se faz favor.", "Eine Fahrkarte nach Porto, bitte.", ["Um bilhete para o Porto, por favor."]],
+            ["a", "Aqui está. São vinte euros.", "Bitte schön. Das macht zwanzig Euro."],
+            ["b", "Quando parte o comboio?", "Wann fährt der Zug ab?"],
+            ["a", "Parte às dez.", "Er fährt um zehn ab."],
+            ["b", "Obrigado. E onde fica a paragem do autocarro?", "Danke. Und wo ist die Bushaltestelle?", ["Obrigada. E onde fica a paragem do autocarro?", "Onde fica a paragem do autocarro?"]],
+            ["a", "Ali, à esquerda.", "Dort, links."],
+          ],
+          question: { q: "Wann fährt der Zug ab?", options: ["Um zehn", "Um acht", "Um zwanzig nach zehn"] },
+        },
       },
       {
         id: "compras",
@@ -456,6 +770,31 @@ export const course: UnitDef[] = [
           ["São cinco euros.", "Das macht fünf Euro."],
           ["Mais alguma coisa?", "Sonst noch etwas?"],
         ],
+        sound: {
+          title: "ç und c",
+          body: [
+            "ç klingt immer wie scharfes s: maçã ≈ „maßã“, açúcar ≈ „aßukar“.",
+            "c vor e und i ist ebenfalls ein s, sonst ein k: cidade, aber cartão.",
+          ],
+          examples: [
+            { pt: "Queria um quilo de maçãs.", de: "Ich hätte gern ein Kilo Äpfel." },
+            { pt: "com cartão", de: "mit Karte" },
+          ],
+        },
+        dialogue: {
+          situation: "Am Obststand auf dem Markt.",
+          partner: "Dona Fátima",
+          lines: [
+            ["a", "Bom dia! O que deseja?", "Guten Morgen! Was darf es sein?"],
+            ["b", "Queria um quilo de maçãs.", "Ich hätte gern ein Kilo Äpfel.", ["Queria um quilo de maçãs, se faz favor.", "Queria um quilo de maçãs, por favor."]],
+            ["a", "Mais alguma coisa?", "Sonst noch etwas?"],
+            ["b", "Não, obrigado. Quanto custa?", "Nein, danke. Was kostet das?", ["Não, obrigada. Quanto custa?", "Não, obrigado. Quanto é?", "Não, obrigada. Quanto é?"]],
+            ["a", "São dois euros.", "Das macht zwei Euro."],
+            ["b", "Posso pagar com cartão?", "Kann ich mit Karte bezahlen?"],
+            ["a", "Pode, sim.", "Ja, können Sie."],
+          ],
+          question: { q: "Was kosten die Äpfel?", options: ["Zwei Euro", "Fünf Euro", "Zehn Euro"] },
+        },
       },
       {
         id: "horas",
@@ -494,6 +833,28 @@ export const course: UnitDef[] = [
           ["Já é tarde.", "Es ist schon spät."],
           ["Chego às oito e um quarto.", "Ich komme um Viertel nach acht an."],
         ],
+        sound: {
+          title: "Das stumme h",
+          body: [
+            "h am Wortanfang wird nie gesprochen: hora ≈ „ora“, hoje ≈ „osch“.",
+            "Nur in den Verbindungen ch (sch), lh und nh verändert h den Laut davor.",
+          ],
+          examples: [
+            { pt: "Que horas são?", de: "Wie spät ist es?" },
+            { pt: "hoje", de: "heute" },
+          ],
+        },
+        dialogue: {
+          situation: "Du fragst auf der Straße nach der Uhrzeit.",
+          partner: "Senhora",
+          lines: [
+            ["b", "Desculpe, que horas são?", "Entschuldigung, wie spät ist es?", ["Que horas são?"]],
+            ["a", "São três e meia.", "Es ist halb vier."],
+            ["b", "Obrigado. Já é tarde!", "Danke. Es ist schon spät!", ["Obrigada. Já é tarde!", "Obrigado, já é tarde!", "Obrigada, já é tarde!"]],
+            ["a", "Tarde? Não, ainda é cedo!", "Spät? Nein, es ist noch früh!"],
+          ],
+          question: { q: "Wie spät ist es?", options: ["Halb vier", "Halb drei", "Viertel nach drei"] },
+        },
       },
       {
         id: "semana",
@@ -532,6 +893,30 @@ export const course: UnitDef[] = [
           ["Até segunda!", "Bis Montag!"],
           ["Ontem foi quarta-feira.", "Gestern war Mittwoch."],
         ],
+        sound: {
+          title: "Fragen ohne Fragewort",
+          body: [
+            "Ja/Nein-Fragen sehen aus wie Aussagesätze – nur die Stimme geht am Ende nach oben: „Vais à praia?“",
+            "Aussage: „Vais à praia.“ (Du gehst an den Strand.) Frage: „Vais à praia?“ (Gehst du an den Strand?)",
+          ],
+          examples: [
+            { pt: "Vais à praia?", de: "Gehst du an den Strand?" },
+            { pt: "Vou à praia.", de: "Ich gehe an den Strand." },
+          ],
+        },
+        dialogue: {
+          situation: "Ein Freund fragt nach deinem Wochenende.",
+          partner: "Miguel",
+          lines: [
+            ["a", "Vais à praia no sábado?", "Gehst du am Samstag an den Strand?"],
+            ["b", "Não, no sábado trabalho.", "Nein, am Samstag arbeite ich.", ["Não, trabalho no sábado.", "Não, no sábado eu trabalho."]],
+            ["a", "E no domingo?", "Und am Sonntag?"],
+            ["b", "No domingo vou à praia.", "Am Sonntag gehe ich an den Strand.", ["No domingo eu vou à praia.", "Vou à praia no domingo."]],
+            ["a", "Boa! Então até domingo!", "Super! Dann bis Sonntag!"],
+            ["b", "Bom fim de semana!", "Schönes Wochenende!"],
+          ],
+          question: { q: "Wann gehst du an den Strand?", options: ["Am Sonntag", "Am Samstag", "Am Freitag"] },
+        },
       },
     ],
   },
@@ -539,6 +924,35 @@ export const course: UnitDef[] = [
     id: "u4",
     title: "A minha vida",
     description: "Sprachen, Beruf, Tagesablauf und Pläne",
+    speaking: [
+      {
+        prompt: "Erzähl von deinem Beruf und welche Sprachen du sprichst.",
+        hints: ["Sou …", "Trabalho num/numa …", "Falo …", "Estudo …"],
+        model: [
+          { pt: "Sou engenheiro e trabalho numa empresa alemã.", de: "Ich bin Ingenieur und arbeite in einer deutschen Firma." },
+          { pt: "Falo alemão e inglês.", de: "Ich spreche Deutsch und Englisch." },
+          { pt: "Estudo português todos os dias.", de: "Ich lerne jeden Tag Portugiesisch." },
+        ],
+      },
+      {
+        prompt: "Beschreib deinen typischen Tag – vom Aufstehen bis zum Schlafengehen.",
+        hints: ["Levanto-me …", "Tomo duche …", "Saio de casa …", "À noite …", "Deito-me …"],
+        model: [
+          { pt: "Levanto-me às sete.", de: "Ich stehe um sieben auf." },
+          { pt: "Tomo duche e saio de casa às oito.", de: "Ich dusche und gehe um acht aus dem Haus." },
+          { pt: "À noite deito-me às onze.", de: "Abends gehe ich um elf ins Bett." },
+        ],
+      },
+      {
+        prompt: "Lade jemanden für heute Abend ins Kino ein und macht eine Uhrzeit aus.",
+        hints: ["Queres …?", "logo à noite", "A que horas?", "Combinado"],
+        model: [
+          { pt: "Queres ir ao cinema logo à noite?", de: "Willst du heute Abend ins Kino gehen?" },
+          { pt: "Às nove?", de: "Um neun?" },
+          { pt: "Combinado, até logo!", de: "Abgemacht, bis später!" },
+        ],
+      },
+    ],
     lessons: [
       {
         id: "falo",
@@ -577,6 +991,29 @@ export const course: UnitDef[] = [
           ["Ela também fala alemão.", "Sie spricht auch Deutsch."],
           ["Estudo português todos os dias.", "Ich lerne jeden Tag Portugiesisch.", ["Eu estudo português todos os dias."]],
         ],
+        sound: {
+          title: "Wo liegt die Betonung?",
+          body: [
+            "Wörter, die auf Vokal, -s oder -m enden, betont man auf der vorletzten Silbe: fa-LA-mos, es-TU-do.",
+            "Ein Akzent zeigt eine Ausnahme an: in-GLÊS, por-tu-GUÊS, tam-BÉM.",
+          ],
+          examples: [
+            { pt: "Nós falamos português.", de: "Wir sprechen Portugiesisch." },
+            { pt: "também", de: "auch" },
+          ],
+        },
+        dialogue: {
+          situation: "In einer Bar spricht dich jemand an.",
+          partner: "André",
+          lines: [
+            ["a", "Falas português?", "Sprichst du Portugiesisch?"],
+            ["b", "Falo um pouco. Estudo português todos os dias.", "Ein bisschen. Ich lerne jeden Tag Portugiesisch.", ["Falo um pouco. Eu estudo português todos os dias.", "Um pouco. Estudo português todos os dias."]],
+            ["a", "Muito bem! E falas inglês?", "Sehr gut! Und sprichst du Englisch?"],
+            ["b", "Sim, também falo inglês.", "Ja, ich spreche auch Englisch.", ["Sim, falo inglês também.", "Sim, eu também falo inglês."]],
+            ["a", "Então falamos português!", "Dann sprechen wir Portugiesisch!"],
+          ],
+          question: { q: "Wie oft lernst du Portugiesisch?", options: ["Jeden Tag", "Am Wochenende", "Einmal pro Woche"] },
+        },
       },
       {
         id: "pode-repetir",
@@ -615,6 +1052,30 @@ export const course: UnitDef[] = [
           ["O que quer dizer esta palavra?", "Was bedeutet dieses Wort?"],
           ["Não percebo, desculpe.", "Ich verstehe nicht, Entschuldigung.", ["Desculpe, não percebo."]],
         ],
+        sound: {
+          title: "Portugiesen verschlucken viel",
+          body: [
+            "Im schnellen Sprechen fallen unbetonte Silben fast ganz weg: „se faz favor“ klingt wie „sfasch favor“, „pode repetir“ wie „pód rrpetir“.",
+            "Das ist normal – frag ruhig nach. „Mais devagar“ ist ein Satz, den Portugiesen gern hören.",
+          ],
+          examples: [
+            { pt: "Pode repetir, se faz favor?", de: "Können Sie das bitte wiederholen?" },
+            { pt: "Mais devagar, se faz favor.", de: "Langsamer, bitte." },
+          ],
+        },
+        dialogue: {
+          situation: "Eine Frau spricht dich auf der Straße an – sehr schnell.",
+          partner: "Senhora",
+          lines: [
+            ["a", "Desculpe, sabe onde fica o museu?", "Entschuldigung, wissen Sie, wo das Museum ist?"],
+            ["b", "Desculpe, não percebo. Pode repetir, se faz favor?", "Entschuldigung, ich verstehe nicht. Können Sie das bitte wiederholen?", ["Desculpe, não percebo. Pode repetir, por favor?", "Não percebo. Pode repetir, se faz favor?", "Não percebo. Pode repetir, por favor?"]],
+            ["a", "Onde fica o museu?", "Wo ist das Museum?"],
+            ["b", "Mais devagar, se faz favor.", "Langsamer, bitte.", ["Mais devagar, por favor."]],
+            ["a", "Onde… fica… o museu?", "Wo … ist … das Museum?"],
+            ["b", "Ah, o museu! É ali, à esquerda.", "Ah, das Museum! Es ist dort, links.", ["Ah, o museu! Fica ali, à esquerda."]],
+          ],
+          question: { q: "Was sucht die Frau?", options: ["Das Museum", "Den Bahnhof", "Die Toilette"] },
+        },
       },
       {
         id: "o-que-faz",
@@ -654,6 +1115,29 @@ export const course: UnitDef[] = [
           ["Ela trabalha numa empresa alemã.", "Sie arbeitet in einer deutschen Firma."],
           ["O que fazes ao fim de semana?", "Was machst du am Wochenende?", ["O que é que fazes ao fim de semana?"]],
         ],
+        sound: {
+          title: "z am Wortende",
+          body: [
+            "z am Wortende klingt wie „sch“: faz ≈ „fasch“, dez ≈ „däsch“.",
+            "Zwischen Vokalen ist z ein stimmhaftes s wie in „Rose“: fazer, dizer.",
+          ],
+          examples: [
+            { pt: "O que faz?", de: "Was machen Sie beruflich?" },
+            { pt: "fazer", de: "machen" },
+          ],
+        },
+        dialogue: {
+          situation: "Auf einer Feier fragt dich eine Frau nach deinem Beruf.",
+          partner: "Doutora Helena",
+          lines: [
+            ["a", "O que faz?", "Was machen Sie beruflich?"],
+            ["b", "Sou engenheiro. Trabalho numa empresa alemã.", "Ich bin Ingenieur. Ich arbeite in einer deutschen Firma.", ["Sou engenheira. Trabalho numa empresa alemã.", "Eu sou engenheiro. Trabalho numa empresa alemã."]],
+            ["a", "Que interessante! Eu sou médica.", "Wie interessant! Ich bin Ärztin."],
+            ["b", "Trabalha num hospital?", "Arbeiten Sie in einem Krankenhaus?", ["A senhora trabalha num hospital?"]],
+            ["a", "Sim, no hospital de Santa Maria.", "Ja, im Krankenhaus Santa Maria."],
+          ],
+          question: { q: "Wo arbeitet Helena?", options: ["In einem Krankenhaus", "In einem Büro", "In einer deutschen Firma"] },
+        },
       },
       {
         id: "numeros-100",
@@ -694,6 +1178,29 @@ export const course: UnitDef[] = [
           ["Moro no número quinze.", "Ich wohne in Hausnummer 15.", ["Eu moro no número quinze."]],
           ["Quanto é, se faz favor?", "Was macht das, bitte?", ["Quanto é, por favor?"]],
         ],
+        sound: {
+          title: "qu: mal k, mal kw",
+          body: [
+            "Vor a und o spricht man qu wie „kw“: quanto, quarenta, cinquenta.",
+            "Vor e und i meist wie „k“: que, quinze, quero.",
+          ],
+          examples: [
+            { pt: "Quanto é?", de: "Was macht das?" },
+            { pt: "quinze, quarenta", de: "fünfzehn, vierzig" },
+          ],
+        },
+        dialogue: {
+          situation: "Du bezahlst im Restaurant.",
+          partner: "Empregado",
+          lines: [
+            ["b", "Quanto é, se faz favor?", "Was macht das, bitte?", ["Quanto é, por favor?", "A conta, se faz favor.", "A conta, por favor."]],
+            ["a", "São trinta e cinco euros e cinquenta.", "Das macht fünfunddreißig Euro fünfzig."],
+            ["b", "Posso pagar com cartão?", "Kann ich mit Karte bezahlen?"],
+            ["a", "Claro.", "Natürlich."],
+            ["b", "Obrigado, bom dia!", "Danke, einen schönen Tag!", ["Obrigada, bom dia!", "Obrigado. Bom dia!", "Obrigada. Bom dia!"]],
+          ],
+          question: { q: "Wie viel musst du bezahlen?", options: ["35,50 €", "53,50 €", "35,15 €"] },
+        },
       },
       {
         id: "rotina",
@@ -734,6 +1241,30 @@ export const course: UnitDef[] = [
           ["Às vezes chego tarde.", "Manchmal komme ich spät."],
           ["Deito-me sempre às onze.", "Ich gehe immer um elf ins Bett.", ["Eu deito-me sempre às onze."]],
         ],
+        sound: {
+          title: "Kleine Wörter werden ganz klein",
+          body: [
+            "Unbetonte kurze Wörter wie me, te, se, de, que schrumpfen fast zu einem Konsonanten: levanto-me ≈ „levãtum“, de manhã ≈ „d manjã“.",
+            "Wenn du das beim Hören weißt, verstehst du schnelle Sprache viel besser.",
+          ],
+          examples: [
+            { pt: "Levanto-me às sete.", de: "Ich stehe um sieben auf." },
+            { pt: "de manhã", de: "morgens" },
+          ],
+        },
+        dialogue: {
+          situation: "Deine Mitbewohnerin fragt nach deinem Tagesablauf.",
+          partner: "Beatriz",
+          lines: [
+            ["a", "A que horas te levantas?", "Um wie viel Uhr stehst du auf?"],
+            ["b", "Levanto-me às sete. E tu?", "Ich stehe um sieben auf. Und du?", ["Eu levanto-me às sete. E tu?"]],
+            ["a", "Eu levanto-me às seis e meia. Tomo duche e saio de casa às sete.", "Ich stehe um halb sieben auf. Ich dusche und gehe um sieben aus dem Haus."],
+            ["b", "Eu saio de casa às oito e meia.", "Ich gehe um halb neun aus dem Haus.", ["Saio de casa às oito e meia."]],
+            ["a", "E à noite?", "Und abends?"],
+            ["b", "Deito-me sempre às onze.", "Ich gehe immer um elf ins Bett.", ["À noite deito-me sempre às onze.", "Eu deito-me sempre às onze."]],
+          ],
+          question: { q: "Wann geht Beatriz aus dem Haus?", options: ["Um sieben", "Um halb sieben", "Um halb neun"] },
+        },
       },
       {
         id: "planos",
@@ -774,6 +1305,30 @@ export const course: UnitDef[] = [
           ["Queres ir ao cinema comigo?", "Willst du mit mir ins Kino gehen?", ["Tu queres ir ao cinema comigo?"]],
           ["Combinado, até logo!", "Abgemacht, bis später!"],
         ],
+        sound: {
+          title: "ou klingt wie ô",
+          body: [
+            "ou spricht man in Portugal wie ein geschlossenes „ô“: vou ≈ „vô“, sou ≈ „ßô“, estou ≈ „schtô“.",
+            "Das u hört man dabei kaum.",
+          ],
+          examples: [
+            { pt: "Vou ao cinema.", de: "Ich gehe ins Kino." },
+            { pt: "Sou alemão.", de: "Ich bin Deutscher." },
+          ],
+        },
+        dialogue: {
+          situation: "Eine Freundin schreibt dir und ruft dann an.",
+          partner: "Rita",
+          lines: [
+            ["a", "O que vais fazer no fim de semana?", "Was hast du am Wochenende vor?"],
+            ["b", "Vou visitar os meus pais. E tu?", "Ich besuche meine Eltern. Und du?", ["Eu vou visitar os meus pais. E tu?"]],
+            ["a", "Eu vou descansar. Queres ir ao cinema logo à noite?", "Ich ruhe mich aus. Willst du heute Abend ins Kino gehen?"],
+            ["b", "Sim! A que horas?", "Ja! Um wie viel Uhr?", ["Sim, a que horas?", "Quero! A que horas?"]],
+            ["a", "Às nove.", "Um neun."],
+            ["b", "Combinado, até logo!", "Abgemacht, bis später!", ["Combinado! Até logo!"]],
+          ],
+          question: { q: "Wann geht ihr ins Kino?", options: ["Heute Abend um neun", "Am Wochenende", "Morgen früh"] },
+        },
       },
     ],
   },

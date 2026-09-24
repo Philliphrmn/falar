@@ -1,4 +1,4 @@
-import { allWords, itemIndex, lessonItems, type Item, type LessonDef } from "@/content";
+import { allWords, itemIndex, lessonItems, type Dialogue, type Item, type LessonDef, type SpeakingTask, type UnitDef } from "@/content";
 import { tokenize } from "./answer";
 
 type Base = { key: string; itemId: string };
@@ -32,7 +32,10 @@ export type Exercise =
       options: string[];
       answer: string;
       full: string;
-    });
+    })
+  | (Base & { kind: "dialogue"; dialogue: Dialogue; options: string[]; answer: string })
+  | (Base & { kind: "roleplay"; dialogue: Dialogue; speech: boolean })
+  | (Base & { kind: "produce"; task: SpeakingTask });
 
 export type ExerciseKind = Exercise["kind"];
 
@@ -200,7 +203,8 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
     (s) => (opts.audio ? dictation(s) : typeIt(s)),
     (s) => fill(s, rawWords) ?? build(s, "de-pt", pool),
     (s) => typeIt(s),
-    (s) => (opts.speech ? speakIt(s) : build(s, "pt-de", pool)),
+    // Ohne Spracherkennung wird nachgesprochen und selbst eingeschätzt – dafür braucht es die Vorlage
+    (s) => (opts.speech || opts.audio ? speakIt(s) : build(s, "pt-de", pool)),
   ];
   const sentenceEx = sentences
     .map((s, i) => sentenceKinds[i % sentenceKinds.length](s))
@@ -214,7 +218,25 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
     if (i % 2 === 1 && extras.length) tail.push(extras.shift()!);
   });
   tail.push(...extras);
-  return [...intro, ...tail];
+  return [...intro, ...tail, ...dialogueExercises(lesson, opts)];
+}
+
+/** Zum Schluss: Dialog hören und verstehen, dann selbst die eigene Rolle sprechen */
+export function dialogueExercises(lesson: LessonDef, opts: GenOptions): Exercise[] {
+  const d = lesson.dialogue;
+  if (!d) return [];
+  const itemId = `d:${lesson.id}`;
+  return [
+    {
+      kind: "dialogue",
+      key: key(),
+      itemId,
+      dialogue: d,
+      answer: d.question.options[0],
+      options: shuffle(d.question.options),
+    },
+    { kind: "roleplay", key: key(), itemId, dialogue: d, speech: opts.speech },
+  ];
 }
 
 /** Übungen für fällige Wiederholungen: je Element eine zufällige, passende Übungsform */
@@ -243,4 +265,28 @@ export function reviewExercises(itemIds: string[], opts: GenOptions): Exercise[]
     }
   }
   return out;
+}
+
+export const unitProgressId = (unitId: string) => `abschluss-${unitId}`;
+
+/**
+ * Unit-Abschluss: gemischte Wiederholung aus allen Lektionen der Unit,
+ * ein Rollenspiel und zum Schluss freies Sprechen.
+ */
+export function unitExercises(unit: UnitDef, opts: GenOptions): Exercise[] {
+  const items = unit.lessons.map(lessonItems);
+  const sentences = shuffle(items.flatMap((i) => i.sentences)).slice(0, 8);
+  const words = shuffle(items.flatMap((i) => i.words)).slice(0, 5);
+  const review = reviewExercises([...words, ...sentences].map((i) => i.id), opts);
+  const withDialogue = shuffle(unit.lessons.filter((l) => l.dialogue))[0];
+  const roleplay = withDialogue
+    ? dialogueExercises(withDialogue, opts).filter((e) => e.kind === "roleplay")
+    : [];
+  const produce: Exercise[] = (unit.speaking ?? []).map((task) => ({
+    kind: "produce",
+    key: key(),
+    itemId: `p:${unit.id}`,
+    task,
+  }));
+  return [...review, ...roleplay, ...produce];
 }

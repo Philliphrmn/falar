@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Exercise } from "@/lib/exercises";
 import { checkAnswer, normalize, similarity } from "@/lib/answer";
-import { canSpeak, listen, speak } from "@/lib/speech";
+import { canRecognize, canRecord, canSpeak, listen, speak, startRecording } from "@/lib/speech";
 import type { ItemResult } from "@/lib/data";
 import { IconMic, IconSpeaker, IconTurtle } from "../icons";
 import { shuffle } from "@/lib/exercises";
@@ -62,7 +62,7 @@ export function AudioButtons({ text, size = "md", autoPlay = false }: { text: st
   );
 }
 
-function Title({ children }: { children: React.ReactNode }) {
+export function Title({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-6 font-serif text-2xl leading-snug">{children}</h2>;
 }
 
@@ -84,7 +84,7 @@ function useNumberKeys(count: number, onPick: (i: number) => void, disabled: boo
   }, [count, disabled]);
 }
 
-function Options({
+export function Options({
   options,
   answer,
   locked,
@@ -307,22 +307,39 @@ function TextAnswer({
   placeholder: string;
 }) {
   const [value, setValue] = useState("");
+  const change = (v: string) => {
+    setValue(v);
+    setCheck(v.trim() ? () => ({ ...checkAnswer(v, answers), solution: answers[0], audio: answers[0] }) : null);
+  };
+  return <AccentInput value={value} onChange={change} disabled={locked} placeholder={placeholder} />;
+}
+
+/** Eingabefeld mit Akzent-Leiste für portugiesische Sonderzeichen */
+export function AccentInput({
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  onEnter,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  placeholder: string;
+  /** Eigene Enter-Behandlung (sonst übernimmt der Player) */
+  onEnter?: () => void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => input.current?.focus(), []);
   const insert = (ch: string) => {
     const el = input.current;
     const start = el?.selectionStart ?? value.length;
     const end = el?.selectionEnd ?? value.length;
-    const next = value.slice(0, start) + ch + value.slice(end);
-    change(next);
+    onChange(value.slice(0, start) + ch + value.slice(end));
     requestAnimationFrame(() => {
       el?.focus();
       el?.setSelectionRange(start + 1, start + 1);
     });
-  };
-  const change = (v: string) => {
-    setValue(v);
-    setCheck(v.trim() ? () => ({ ...checkAnswer(v, answers), solution: answers[0], audio: answers[0] }) : null);
   };
   return (
     <div>
@@ -335,12 +352,19 @@ function TextAnswer({
         spellCheck={false}
         placeholder={placeholder}
         value={value}
-        disabled={locked}
-        onChange={(e) => change(e.target.value)}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (onEnter && e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+            onEnter();
+          }
+        }}
       />
       <div className="mt-3 flex flex-wrap gap-1.5">
         {["á", "à", "â", "ã", "ç", "é", "ê", "í", "ó", "ô", "õ", "ú"].map((c) => (
-          <button key={c} type="button" className="chip px-2.5 py-1 text-sm" disabled={locked} onClick={() => insert(c)}>
+          <button key={c} type="button" className="chip px-2.5 py-1 text-sm" disabled={disabled} onClick={() => insert(c)}>
             {c}
           </button>
         ))}
@@ -402,7 +426,101 @@ export function FillEx({ ex, locked, setCheck }: ExerciseProps<"fill">) {
   );
 }
 
-export function SpeakEx({ ex, locked, complete, skipSpeaking }: ExerciseProps<"speak">) {
+export function SpeakEx(props: ExerciseProps<"speak">) {
+  return canRecognize() ? <RecognizeSpeak {...props} /> : <ShadowSpeak {...props} />;
+}
+
+/** Nachsprechen ohne Spracherkennung: sich selbst aufnehmen, mit dem Original vergleichen, selbst einschätzen */
+function ShadowSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"speak">) {
+  const recordable = canRecord();
+  const [state, setState] = useState<"idle" | "recording" | "error">("idle");
+  const [take, setTake] = useState<string | null>(null);
+  const stopRef = useRef<(() => Promise<string>) | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => () => {
+    if (take) URL.revokeObjectURL(take);
+  }, [take]);
+
+  async function toggle() {
+    if (state === "recording" && stopRef.current) {
+      const url = await stopRef.current();
+      setState("idle");
+      setTake(url);
+      audioRef.current = new Audio(url);
+      void audioRef.current.play();
+      return;
+    }
+    try {
+      const { stop } = await startRecording();
+      stopRef.current = stop;
+      setTake(null);
+      setState("recording");
+    } catch {
+      setState("error");
+    }
+  }
+
+  const rate = (good: boolean) =>
+    complete({ correct: true, items: [], audio: ex.text, note: good ? "Selbst eingeschätzt – weiter so!" : "Hör dir das Original noch ein paar Mal an und sprich mit." });
+
+  return (
+    <div>
+      <Title>Sprich nach</Title>
+      <div className="card mb-8 flex items-center gap-4 p-5">
+        <AudioButtons text={ex.text} autoPlay />
+        <div>
+          <p lang="pt-PT" className="text-xl">{ex.text}</p>
+          <p className="text-sm text-muted">{ex.de}</p>
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-4">
+        {recordable && state !== "error" ? (
+          <>
+            <button
+              className={`flex h-20 w-20 items-center justify-center rounded-full border-2 transition ${
+                state === "recording" ? "animate-pulse border-bad bg-bad-soft text-bad" : "border-accent bg-accent-soft text-accent"
+              }`}
+              disabled={locked}
+              onClick={toggle}
+              aria-label={state === "recording" ? "Aufnahme beenden" : "Aufnehmen"}
+            >
+              <IconMic className="h-8 w-8" />
+            </button>
+            <p className="text-center text-sm text-muted">
+              {state === "recording" ? "Aufnahme läuft … zum Beenden tippen" : take ? "Vergleiche deine Aufnahme mit dem Original" : "Hör zu, dann tippen und nachsprechen"}
+            </p>
+            {take && (
+              <div className="flex gap-3">
+                <button className="btn-ghost px-3 py-1.5 text-sm" onClick={() => void audioRef.current?.play()} disabled={locked}>
+                  Meine Aufnahme
+                </button>
+                <button className="btn-ghost px-3 py-1.5 text-sm" onClick={() => speak(ex.text)} disabled={locked}>
+                  Original
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-center text-sm text-muted">
+            {state === "error" ? "Kein Zugriff auf das Mikrofon. " : ""}Sprich den Satz laut nach – gern mehrmals, bis er flüssig klingt.
+          </p>
+        )}
+        {(take || !recordable || state === "error") && !locked && (
+          <div className="flex w-full max-w-sm gap-3">
+            <button className="btn-ghost flex-1" onClick={() => rate(false)}>Noch unsicher</button>
+            <button className="btn-primary flex-1" onClick={() => rate(true)}>Klang gut</button>
+          </div>
+        )}
+        <button className="text-sm text-muted hover:text-ink" onClick={skipSpeaking} disabled={locked}>
+          Kann gerade nicht sprechen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"speak">) {
   const [state, setState] = useState<"idle" | "listening" | "error">("idle");
   const [heard, setHeard] = useState<string | null>(null);
   const [errorText, setErrorText] = useState("");
