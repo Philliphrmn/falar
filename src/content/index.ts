@@ -4,12 +4,12 @@ import type { GrammarNote, Item, LessonDef, UnitDef } from "./types";
 export { course };
 export type { GrammarNote, Item, LessonDef, UnitDef };
 
+// Akzente bleiben erhalten, sonst fallen z. B. „está“ und „esta“ zusammen
 function slug(text: string) {
   return text
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[^a-z0-9]+/g, "-")
+    .normalize("NFC")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-|-$/g, "");
 }
 
