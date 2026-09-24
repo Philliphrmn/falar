@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# falar.
 
-## Getting Started
+Europäisches Portugiesisch (pt-PT) lernen – ruhig, strukturiert, ohne Maskottchen.
 
-First, run the development server:
+- **13 Lektionen in 3 Units** (A0–A1): Begrüßung, Vorstellen, Herkunft, Zahlen, Café, Essen, Familie, ser/estar, Wege, Verkehr, Einkaufen, Uhrzeit, Wochentage
+- **Übungsformen:** Auswahl (PT↔DE), Hören, Paare finden, Sätze aus Bausteinen bauen, Übersetzen per Tastatur (mit Akzent-Leiste und Tippfehler-Toleranz), Diktat, Lückentext, Sprechen (Spracherkennung)
+- **Grammatik** kurz und sachlich vor jeder Lektion, gesammelt unter `/grammatik`
+- **Wiederholung** mit Leitner-Boxen: Jede Vokabel und jeder Satz kommt nach 1, 2, 4, 8, 16, 32 Tagen wieder; Fehler setzen zurück
+- **Dezente Statistik:** Tagesziel, Streak, XP der letzten 7 Tage
+- Fortschritt geräteübergreifend in **Supabase**
+
+## Lokal starten
 
 ```bash
+cp .env.example .env.local   # Werte aus dem Supabase-Dashboard (Project Settings → API)
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Dann http://localhost:3000 öffnen und registrieren.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Aufbau
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Pfad | Inhalt |
+| --- | --- |
+| `src/content/course.ts` | Alle Lektionen: Wörter, Sätze, Grammatik. Neue Lektionen einfach ergänzen. |
+| `src/lib/exercises.ts` | Erzeugt aus einer Lektion automatisch die Übungsfolge |
+| `src/lib/answer.ts` | Antwortprüfung (Akzente, Tippfehler, optionale Pronomen) |
+| `src/lib/srs.ts` | Wiederholungs-Logik (Leitner) |
+| `src/lib/speech.ts` | Sprachausgabe und -erkennung über die Web Speech API (pt-PT) |
+| `supabase/migrations/` | Datenbankschema mit Row Level Security |
 
-## Learn More
+## Hinweise
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Aussprache:** Die App nutzt die Stimmen deines Geräts. Für echtes europäisches Portugiesisch in den Systemeinstellungen eine Stimme „Portugiesisch (Portugal)“ installieren – die Einstellungsseite zeigt an, welche Stimme verwendet wird.
+- **Sprechübungen** brauchen Chrome, Edge oder Safari (Firefox unterstützt keine Spracherkennung). Sie lassen sich pro Sitzung abschalten.
+- **Deployment (z. B. Vercel):** Die beiden `NEXT_PUBLIC_SUPABASE_*`-Variablen setzen und in Supabase unter *Authentication → URL Configuration* die Site-URL auf die echte Adresse stellen, sonst führen die Bestätigungs-Mails nach `localhost`.
