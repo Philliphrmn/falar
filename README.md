@@ -7,6 +7,8 @@ Europäisches Portugiesisch (pt-PT) lernen – ruhig, strukturiert, ohne Maskott
 - **Unit-Abschluss:** gemischte Wiederholung, Rollenspiel und freies Sprechen mit Musterlösung
 - **Aussprache-Tipps** zu jeder Lektion (typisch europäisches Portugiesisch)
 - **Übungsformen:** Auswahl (PT↔DE), Hören, Paare finden, Sätze aus Bausteinen bauen, Übersetzen per Tastatur (mit Akzent-Leiste und Tippfehler-Toleranz), Diktat, Lückentext, Sprechen (Spracherkennung – oder Nachsprechen mit eigener Aufnahme zum Vergleichen)
+- **Verben** mit allen Formen im Präsens (eu, tu, ele/ela/você, nós, eles/elas/vocês) – in der Lektion, in der Vokabelliste und als Konjugationsübung in der Wiederholung
+- **Vokabelliste** filterbar nach Wortart, mit Aussprachehilfe in deutscher Umschrift bei kniffligen Wörtern
 - **Grammatik** kurz und sachlich vor jeder Lektion, gesammelt unter `/grammatik`
 - **Wiederholung** mit Leitner-Boxen: Jede Vokabel und jeder Satz kommt nach 1, 2, 4, 8, 16, 32 Tagen wieder; Fehler setzen zurück
 - **Dezente Statistik:** Tagesziel, Streak, XP der letzten 7 Tage
@@ -26,11 +28,13 @@ Dann http://localhost:3000 öffnen und registrieren.
 
 | Pfad | Inhalt |
 | --- | --- |
-| `src/content/course.ts` | Alle Lektionen: Wörter, Sätze, Grammatik. Neue Lektionen einfach ergänzen. |
+| `src/content/units/` | Alle Lektionen, eine Datei pro Unit: Wörter, Sätze, Grammatik, Dialoge. Den portugiesischen Text bestehender Wörter/Sätze nicht ändern – daraus entstehen die Fortschritts-IDs. |
+| `src/content/lexicon/` | Wortart und Aussprachehilfe je Vokabel (pro Unit) und Konjugationstabellen aller Verben (`verbs.ts`) |
+| `scripts/check-content.mts` | `npm run check`: prüft, dass jedes Wort in Sätzen/Dialogen als Vokabel eingeführt ist und alle Einträge im Lexikon stehen |
 | `src/lib/exercises.ts` | Erzeugt aus einer Lektion automatisch die Übungsfolge |
 | `src/lib/answer.ts` | Antwortprüfung (Akzente, Tippfehler, optionale Pronomen) |
 | `src/lib/srs.ts` | Wiederholungs-Logik (Leitner) |
-| `src/lib/speech.ts` | Sprachausgabe und -erkennung über die Web Speech API (pt-PT) |
+| `src/lib/speech.ts` | Sprachausgabe (Aufnahmen, sonst Azure über `/api/tts`, zuletzt Gerätestimme) und Spracherkennung |
 | `src/components/player/Dialogue.tsx` | Dialog, Rollenspiel und freies Sprechen |
 | `scripts/generate-audio.mts` | Vertont alle Texte mit Azure-Neural-Stimmen (pt-PT) |
 | `supabase/migrations/` | Datenbankschema mit Row Level Security |

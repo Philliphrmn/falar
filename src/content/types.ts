@@ -55,10 +55,63 @@ export type UnitDef = {
 
 export type Item = {
   id: string;
-  kind: "word" | "sentence";
+  kind: "word" | "sentence" | "verb";
   pt: string;
   de: string;
   altPt: string[];
   note?: string;
   lessonId: string;
+  /** Aus dem Lexikon: Wortart und Aussprachehilfe */
+  pos?: PartOfSpeech;
+  sound?: string;
+};
+
+/** Wortart – für Filter in der Vokabelliste */
+export type PartOfSpeech =
+  | "verb"
+  | "noun"
+  | "adj"
+  | "adv"
+  | "pron"
+  | "num"
+  | "prep"
+  | "conj"
+  | "art"
+  | "question"
+  | "phrase";
+
+export type LexEntry = {
+  pos: PartOfSpeech;
+  /** Aussprache in deutscher Umschrift, nur bei kniffligen Wörtern, z. B. „dschkulp“ */
+  sound?: string;
+  /** Infinitiv, wenn das Wort eine Verbform ist oder ein Verb enthält (z. B. „gosto de“ → „gostar“) */
+  verb?: string;
+};
+
+/** Personen im Präsens: eu, tu, ele/ela/você, nós, eles/elas/vocês */
+export type PresentForms = [eu: string, tu: string, ele: string, nos: string, eles: string];
+
+export type VerbDef = {
+  inf: string;
+  de: string;
+  present: PresentForms;
+  /** Weitere Formen, die im Kurs vorkommen, z. B. Imperativ „siga“ oder „queria“ */
+  extra?: { label: string; forms: [pt: string, de: string][] }[];
+  /** Kurzer Hinweis, z. B. „unregelmäßig“ */
+  note?: string;
+  sound?: string;
+};
+
+export type UnitLexicon = {
+  /** Schlüssel: portugiesischer Text genau wie in LessonDef.words */
+  words: Record<string, LexEntry>;
+  /** Verben, die in dieser Unit zum ersten Mal vorkommen */
+  verbs?: VerbDef[];
+  /**
+   * Abgewandelte Formen, die in Sätzen vorkommen, aber keine eigene Vokabel sind:
+   * Form (klein) → Vokabel (genau wie in words), z. B. „filhos“ → „o filho“.
+   */
+  forms?: Record<string, string>;
+  /** Eigennamen, die nicht erklärt werden müssen (Ana, Lisboa …) */
+  names?: string[];
 };

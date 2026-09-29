@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { DEFAULT_SETTINGS, loadAll, type ActivityDay, type LessonProgress, type Settings } from "@/lib/data";
+import { addMissingReviews, DEFAULT_SETTINGS, loadAll, type ActivityDay, type LessonProgress, type Settings } from "@/lib/data";
 import type { ReviewState } from "@/lib/srs";
 import { computeStreak, dayKey } from "@/lib/date";
-import { itemIndex } from "@/content";
+import { getLesson, itemIndex, lessonItems } from "@/content";
 import { setSpeechRate } from "@/lib/speech";
 
 type AppState = {
@@ -65,6 +65,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     if (userId) await loadAll(userId).then(apply, fail);
   }, [userId, apply, fail]);
+
+  // Neue Vokabeln/Verben in bereits abgeschlossenen Lektionen einmal pro Sitzung in die Wiederholung aufnehmen
+  const backfilled = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || !loaded || backfilled.current === userId) return;
+    backfilled.current = userId;
+    const have = new Set(reviews.map((r) => r.item_id));
+    const missing = new Set<string>();
+    for (const p of progress) {
+      const lesson = getLesson(p.lesson_id);
+      if (!lesson) continue;
+      const { words, sentences, verbs } = lessonItems(lesson);
+      for (const item of [...words, ...verbs, ...sentences]) {
+        if (!have.has(item.id) && itemIndex.get(item.id)?.lessonId === lesson.id) missing.add(item.id);
+      }
+    }
+    if (missing.size) addMissingReviews(userId, [...missing]).then(refresh, fail);
+  }, [userId, loaded, reviews, progress, refresh, fail]);
 
   useEffect(() => {
     if (!userId) return;

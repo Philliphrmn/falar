@@ -86,3 +86,23 @@ export async function saveSession(
   const failed = results.find((r) => r.error);
   if (failed?.error) throw new Error(failed.error.message);
 }
+
+/**
+ * Legt Wiederholungs-Einträge für Elemente an, die es noch nicht gibt (z. B. neue Vokabeln
+ * in bereits abgeschlossenen Lektionen). Bestehende Einträge bleiben unangetastet.
+ * Damit nicht alles auf einmal fällig wird, verteilt sich das auf mehrere Tage.
+ */
+export async function addMissingReviews(userId: string, itemIds: string[], perDay = 12) {
+  if (!itemIds.length) return;
+  const start = new Date();
+  start.setHours(4, 0, 0, 0);
+  const rows = itemIds.map((item_id, i) => ({
+    user_id: userId,
+    item_id,
+    box: 1,
+    due_at: addDays(start, Math.floor(i / perDay)).toISOString(),
+    correct_count: 0,
+    wrong_count: 0,
+  }));
+  must(await supabase.from("review_items").upsert(rows, { onConflict: "user_id,item_id", ignoreDuplicates: true }));
+}

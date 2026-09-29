@@ -4,10 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Exercise } from "@/lib/exercises";
 import type { ItemResult } from "@/lib/data";
 import { speak } from "@/lib/speech";
+import { PERSONS_DE } from "@/content";
 import { IconCheck, IconClose, IconSpeaker } from "../icons";
 import {
   BuildEx,
   ChoiceEx,
+  ConjugateEx,
   DictationEx,
   FillEx,
   ListenChoiceEx,
@@ -56,6 +58,8 @@ function promptOf(ex: Exercise) {
       return "Rollenspiel";
     case "produce":
       return ex.task.prompt;
+    case "conjugate":
+      return `${ex.verb.inf} – ${PERSONS_DE[ex.person]}`;
   }
 }
 
@@ -98,7 +102,7 @@ export function Player({ exercises, onExit, onFinish }: Props) {
         setQueue((q) => [...q, { ex: { ...ex, key: ex.key }, attempt: attempt + 1 }]);
       }
       setOutcome(o);
-      if (o.audio && !o.correct) speak(o.audio);
+      if (o.audio && (!o.correct || o.say)) speak(o.audio);
     },
     [current],
   );
@@ -239,5 +243,7 @@ function ExerciseView({ ex, ...props }: { ex: Exercise } & Omit<ExerciseProps<"c
       return <RoleplayEx ex={ex} {...props} />;
     case "produce":
       return <ProduceEx ex={ex} {...props} />;
+    case "conjugate":
+      return <ConjugateEx ex={ex} {...props} />;
   }
 }

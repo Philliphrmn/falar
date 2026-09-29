@@ -6,6 +6,7 @@ import { checkAnswer, normalize, similarity } from "@/lib/answer";
 import { canRecognize, canRecord, canSpeak, listen, speak, startRecording } from "@/lib/speech";
 import type { ItemResult } from "@/lib/data";
 import { IconMic, IconSpeaker, IconTurtle } from "../icons";
+import { PERSONS, PERSONS_DE } from "@/content";
 import { shuffle } from "@/lib/exercises";
 
 export type Outcome = {
@@ -18,6 +19,8 @@ export type Outcome = {
   items?: ItemResult[];
   /** Zählt nicht zur Wertung */
   skipped?: boolean;
+  /** Portugiesische Lösung auch bei richtiger Antwort vorlesen (wenn sie noch nicht zu hören war) */
+  say?: boolean;
 };
 
 export type ExerciseProps<K extends Exercise["kind"]> = {
@@ -58,6 +61,16 @@ export function AudioButtons({ text, size = "md", autoPlay = false }: { text: st
       >
         <IconTurtle className={big ? "h-6 w-6" : "h-4 w-4"} />
       </button>
+    </span>
+  );
+}
+
+/** Aussprachehilfe in deutscher Umschrift, z. B. „klingt wie: dschkulp“ */
+export function SoundHint({ sound, className = "" }: { sound?: string; className?: string }) {
+  if (!sound) return null;
+  return (
+    <span className={`mt-1 block font-sans text-sm text-muted ${className}`}>
+      klingt wie <span className="italic">„{sound}“</span>
     </span>
   );
 }
@@ -138,6 +151,7 @@ export function ChoiceEx({ ex, locked, setCheck }: ExerciseProps<"choice">) {
           <span lang={ex.direction === "pt-de" ? "pt-PT" : "de"}>{ex.prompt}</span>
           {ex.direction === "pt-de" && <AudioButtons text={ex.prompt} autoPlay />}
         </span>
+        {ex.direction === "pt-de" && <SoundHint sound={ex.sound} />}
         {ex.note && ex.direction === "pt-de" && <span className="mt-1 block font-sans text-sm text-muted">({ex.note})</span>}
       </Title>
       <Options options={ex.options} answer={ex.answer} locked={locked} selected={sel} onSelect={pick} lang={ex.direction === "de-pt" ? "pt" : undefined} />
@@ -256,6 +270,7 @@ export function BuildEx({ ex, locked, setCheck }: ExerciseProps<"build">) {
         correct: ok,
         solution: ex.answers[0],
         audio: ex.direction === "de-pt" ? ex.answers[0] : ex.prompt,
+        say: ex.direction === "de-pt",
       };
     });
   };
@@ -300,16 +315,18 @@ function TextAnswer({
   locked,
   setCheck,
   placeholder,
+  say = false,
 }: {
   answers: string[];
   locked: boolean;
   setCheck: ExerciseProps<"type">["setCheck"];
   placeholder: string;
+  say?: boolean;
 }) {
   const [value, setValue] = useState("");
   const change = (v: string) => {
     setValue(v);
-    setCheck(v.trim() ? () => ({ ...checkAnswer(v, answers), solution: answers[0], audio: answers[0] }) : null);
+    setCheck(v.trim() ? () => ({ ...checkAnswer(v, answers), solution: answers[0], audio: answers[0], say }) : null);
   };
   return <AccentInput value={value} onChange={change} disabled={locked} placeholder={placeholder} />;
 }
@@ -378,7 +395,7 @@ export function TypeEx({ ex, locked, setCheck }: ExerciseProps<"type">) {
     <div>
       <p className="mb-2 text-sm uppercase tracking-wide text-muted">Schreib auf Portugiesisch</p>
       <Title>{ex.prompt}</Title>
-      <TextAnswer answers={ex.answers} locked={locked} setCheck={setCheck} placeholder="Deine Antwort" />
+      <TextAnswer answers={ex.answers} locked={locked} setCheck={setCheck} placeholder="Deine Antwort" say />
     </div>
   );
 }
@@ -419,10 +436,75 @@ export function FillEx({ ex, locked, setCheck }: ExerciseProps<"fill">) {
         lang="pt"
         onSelect={(i) => {
           setSel(i);
-          setCheck(() => ({ correct: ex.options[i] === ex.answer, solution: ex.full, audio: ex.full }));
+          setCheck(() => ({ correct: ex.options[i] === ex.answer, solution: ex.full, audio: ex.full, say: true }));
         }}
       />
     </div>
+  );
+}
+
+export function ConjugateEx({ ex, locked, setCheck }: ExerciseProps<"conjugate">) {
+  const [sel, setSel] = useState<number | null>(null);
+  const outcome = (correct: boolean) => ({
+    correct,
+    solution: `${PERSONS[ex.person].split("/")[0]} ${ex.answer}`,
+    audio: ex.answer,
+    say: true,
+  });
+  return (
+    <div>
+      <p className="mb-2 text-sm uppercase tracking-wide text-muted">Konjugiere</p>
+      <Title>
+        <span className="flex flex-wrap items-center gap-3">
+          <span lang="pt-PT">{ex.verb.inf}</span>
+          <AudioButtons text={ex.verb.inf} />
+        </span>
+        <span className="mt-1 block font-sans text-base text-muted">{ex.verb.de}</span>
+      </Title>
+      <p className="mb-4 text-lg">
+        <span lang="pt-PT" className="font-medium">{PERSONS[ex.person]}</span>
+        <span className="text-muted"> ({PERSONS_DE[ex.person]})</span> …
+      </p>
+      {ex.mode === "choice" ? (
+        <Options
+          options={ex.options}
+          answer={ex.answer}
+          locked={locked}
+          selected={sel}
+          lang="pt"
+          onSelect={(i) => {
+            setSel(i);
+            setCheck(() => outcome(ex.options[i] === ex.answer));
+          }}
+        />
+      ) : (
+        <ConjugateInput ex={ex} locked={locked} setCheck={setCheck} outcome={outcome} />
+      )}
+    </div>
+  );
+}
+
+function ConjugateInput({
+  ex,
+  locked,
+  setCheck,
+  outcome,
+}: Pick<ExerciseProps<"conjugate">, "ex" | "locked" | "setCheck"> & { outcome: (c: boolean) => Outcome }) {
+  const [value, setValue] = useState("");
+  return (
+    <AccentInput
+      value={value}
+      disabled={locked}
+      placeholder="Verbform"
+      onChange={(v) => {
+        setValue(v);
+        if (!v.trim()) return setCheck(null);
+        setCheck(() => {
+          const r = checkAnswer(v, [ex.answer]);
+          return { ...outcome(r.correct), note: r.note };
+        });
+      }}
+    />
   );
 }
 

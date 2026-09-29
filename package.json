@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "audio": "tsx scripts/generate-audio.mts"
+    "audio": "tsx scripts/generate-audio.mts",
+    "check": "tsx scripts/check-content.mts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
