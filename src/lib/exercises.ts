@@ -1,4 +1,15 @@
-import { allWords, itemIndex, lessonItems, type Dialogue, type Item, type LessonDef, type SpeakingTask, type UnitDef } from "@/content";
+import {
+  allWords,
+  itemIndex,
+  lessonItems,
+  verbOf,
+  type Dialogue,
+  type Item,
+  type LessonDef,
+  type SpeakingTask,
+  type UnitDef,
+  type VerbDef,
+} from "@/content";
 import { tokenize } from "./answer";
 
 type Base = { key: string; itemId: string };
@@ -11,6 +22,8 @@ export type Exercise =
       options: string[];
       answer: string;
       note?: string;
+      /** Aussprachehilfe zum portugiesischen Wort */
+      sound?: string;
     })
   | (Base & { kind: "listen-choice"; audio: string; options: string[]; answer: string })
   | (Base & { kind: "match"; pairs: { id: string; pt: string; de: string }[] })
@@ -35,7 +48,16 @@ export type Exercise =
     })
   | (Base & { kind: "dialogue"; dialogue: Dialogue; options: string[]; answer: string })
   | (Base & { kind: "roleplay"; dialogue: Dialogue; speech: boolean })
-  | (Base & { kind: "produce"; task: SpeakingTask });
+  | (Base & { kind: "produce"; task: SpeakingTask })
+  | (Base & {
+      kind: "conjugate";
+      verb: VerbDef;
+      /** Index in PERSONS */
+      person: number;
+      mode: "choice" | "type";
+      options: string[];
+      answer: string;
+    });
 
 export type ExerciseKind = Exercise["kind"];
 
@@ -87,6 +109,7 @@ function choice(item: Item, direction: "pt-de" | "de-pt", local: Item[]): Exerci
     direction,
     prompt: direction === "pt-de" ? item.pt : item.de,
     note: item.note,
+    sound: item.sound,
     answer,
     options: shuffle([answer, ...wordDistractors(item, field, 3, local)]),
   };
@@ -174,11 +197,30 @@ function fill(item: Item, local: Item[]): Exercise | null {
   };
 }
 
+/** Verb in einer Person bilden – als Auswahl oder zum Eintippen */
+function conjugate(item: Item, mode: "choice" | "type", avoidPerson?: number): Exercise | null {
+  const verb = verbOf(item);
+  if (!verb) return null;
+  const persons = shuffle([0, 1, 2, 3, 4].filter((p) => p !== avoidPerson));
+  const person = persons[0];
+  const answer = verb.present[person];
+  return {
+    kind: "conjugate",
+    key: key(),
+    itemId: item.id,
+    verb,
+    person,
+    mode,
+    answer,
+    options: shuffle([answer, ...pickDistinct(verb.present, [answer], 3)]),
+  };
+}
+
 export type GenOptions = { speech: boolean; audio: boolean };
 
 /** Übungsfolge für eine Lektion (~16 Aufgaben) */
 export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[] {
-  const { words: rawWords, sentences: rawSentences } = lessonItems(lesson);
+  const { words: rawWords, sentences: rawSentences, verbs: verbItems } = lessonItems(lesson);
   const words = shuffle(rawWords);
   const sentences = shuffle(rawSentences);
   const pool = [...rawWords, ...rawSentences];
@@ -190,6 +232,15 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
     if (i === 2 && opts.audio) intro.push(listenChoice(words[i - 1], rawWords));
     if (i === 4) intro.push(choice(words[i - 2], "de-pt", rawWords));
   });
+  // Neue Verben: erst eine Form auswählen, dann (bei bis zu zwei Verben) eine selbst schreiben
+  const verbEx: Exercise[] = [];
+  verbItems.forEach((v, i) => {
+    const first = conjugate(v, "choice");
+    if (!first || first.kind !== "conjugate") return;
+    verbEx.push(first);
+    if (i < 2) verbEx.push(conjugate(v, "type", first.person)!);
+  });
+  intro.push(...verbEx);
   const rest = words.slice(6);
   const matchItems = (rest.length >= 4 ? rest : words).slice(0, 5);
   const wordExtra: Exercise[] = [];
@@ -245,7 +296,10 @@ export function reviewExercises(itemIds: string[], opts: GenOptions): Exercise[]
   const sentencePool = [...itemIndex.values()].filter((i) => i.kind === "sentence");
   const out: Exercise[] = [];
   for (const item of shuffle(items)) {
-    if (item.kind === "word") {
+    if (item.kind === "verb") {
+      const ex = conjugate(item, Math.random() < 0.5 ? "choice" : "type");
+      if (ex) out.push(ex);
+    } else if (item.kind === "word") {
       const forms = [
         () => choice(item, "pt-de", []),
         () => choice(item, "de-pt", []),
@@ -277,7 +331,8 @@ export function unitExercises(unit: UnitDef, opts: GenOptions): Exercise[] {
   const items = unit.lessons.map(lessonItems);
   const sentences = shuffle(items.flatMap((i) => i.sentences)).slice(0, 8);
   const words = shuffle(items.flatMap((i) => i.words)).slice(0, 5);
-  const review = reviewExercises([...words, ...sentences].map((i) => i.id), opts);
+  const verbs = shuffle(items.flatMap((i) => i.verbs)).slice(0, 3);
+  const review = reviewExercises([...words, ...verbs, ...sentences].map((i) => i.id), opts);
   const withDialogue = shuffle(unit.lessons.filter((l) => l.dialogue))[0];
   const roleplay = withDialogue
     ? dialogueExercises(withDialogue, opts).filter((e) => e.kind === "roleplay")

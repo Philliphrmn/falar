@@ -44,16 +44,58 @@ type SpeakOpts = { slow?: boolean; voice?: Voice };
 const clipIndex = clips as Record<Voice, Record<string, string>>;
 export const hasRecordedAudio = Object.keys(clipIndex.f).length > 0;
 
+/** Schlüssel ohne Satzzeichen und Großschreibung – so findet auch „Siga“ aus einem Satz seine Aufnahme */
+export const clipKey = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/[.,!?¿¡;:"“”„«»()…]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const looseIndex: Record<Voice, Map<string, string>> = {
+  f: new Map(Object.entries(clipIndex.f).map(([t, f]) => [clipKey(t), f])),
+  m: new Map(Object.entries(clipIndex.m).map(([t, f]) => [clipKey(t), f])),
+};
+
 function clipFor(text: string, voice: Voice = "f") {
-  return clipIndex[voice]?.[text] ?? clipIndex.f[text];
+  return (
+    clipIndex[voice]?.[text] ??
+    clipIndex.f[text] ??
+    looseIndex[voice].get(clipKey(text)) ??
+    looseIndex.f.get(clipKey(text))
+  );
+}
+
+/** Für Texte ohne Aufnahme: vom Server vertonen lassen (Azure), im Speicher zwischengespeichert */
+const remoteCache = new Map<string, Promise<string>>();
+function remoteClip(text: string, voice: Voice): Promise<string> {
+  const k = `${voice}|${clipKey(text)}`;
+  let p = remoteCache.get(k);
+  if (!p) {
+    p = (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error("no-session");
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ text, voice }),
+      });
+      if (!res.ok) throw new Error(`tts ${res.status}`);
+      return URL.createObjectURL(await res.blob());
+    })();
+    p.catch(() => remoteCache.delete(k));
+    remoteCache.set(k, p);
+  }
+  return p;
 }
 
 let current: HTMLAudioElement | null = null;
 
-function playClip(file: string, opts: SpeakOpts): Promise<void> {
+function playClip(src: string, opts: SpeakOpts): Promise<void> {
   return new Promise((resolve, reject) => {
     stopSpeaking();
-    const a = new Audio(`/audio/${file}`);
+    const a = new Audio(src);
     current = a;
     // Standard-Tempo 0.9 in den Einstellungen entspricht der Originalaufnahme
     const rate = Math.min(1.5, Math.max(0.5, speechRate / 0.9));
@@ -72,9 +114,17 @@ export function speak(text: string, opts: SpeakOpts = {}) {
 export function speakAsync(text: string, opts: SpeakOpts = {}): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   const file = clipFor(text, opts.voice);
-  if (file) return playClip(file, opts).catch(() => synthesize(text, opts));
-  return synthesize(text, opts);
+  if (file) return playClip(`/audio/${file}`, opts).catch(() => synthesize(text, opts));
+  // Ohne Aufnahme lieber die Azure-Stimme vom Server als eine fremdsprachige Gerätestimme
+  const token = ++speakToken;
+  return remoteClip(text, opts.voice ?? "f").then(
+    (url) => (token === speakToken ? playClip(url, opts).catch(() => synthesize(text, opts)) : undefined),
+    () => (token === speakToken ? synthesize(text, opts) : undefined),
+  );
 }
+
+/** Verhindert, dass eine verspätete Server-Antwort einen neueren Text übertönt */
+let speakToken = 0;
 
 function synthesize(text: string, opts: SpeakOpts): Promise<void> {
   if (!("speechSynthesis" in window)) return Promise.resolve();
@@ -99,6 +149,7 @@ function synthesize(text: string, opts: SpeakOpts): Promise<void> {
 }
 
 export function stopSpeaking() {
+  speakToken++;
   if (current) {
     current.pause();
     current = null;

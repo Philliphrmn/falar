@@ -91,6 +91,9 @@ body {
   @apply rounded-lg border border-line bg-surface px-3 py-2 shadow-[0_2px_0_var(--line)] transition
     hover:border-accent/50 active:translate-y-px disabled:opacity-30;
 }
+.chip[data-state="selected"] {
+  @apply border-accent bg-accent-soft;
+}
 .input {
   @apply w-full rounded-xl border-2 border-line bg-surface px-4 py-3 outline-none focus:border-accent;
 }

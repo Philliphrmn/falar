@@ -6,10 +6,11 @@ import { useState } from "react";
 import { useApp } from "./AppProvider";
 import { LoginForm } from "./LoginForm";
 import { Player, type SessionSummary } from "./player/Player";
-import { AudioButtons } from "./player/Exercises";
+import { AudioButtons, SoundHint } from "./player/Exercises";
+import { ConjugationTable } from "./Conjugation";
 import type { Exercise, GenOptions } from "@/lib/exercises";
 import { saveSession } from "@/lib/data";
-import type { GrammarNote, LessonDef } from "@/content";
+import { lessonVerbs, lexicon, type GrammarNote, type LessonDef } from "@/content";
 import { canRecognize, canSpeak } from "@/lib/speech";
 
 type Props = {
@@ -196,6 +197,7 @@ export function GrammarCard({ note, label }: { note: GrammarNote; label?: string
 }
 
 function Intro({ lesson, onStart, onExit }: { lesson: LessonDef; onStart: () => void; onExit: () => void }) {
+  const verbs = lessonVerbs(lesson);
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <button onClick={onExit} className="text-sm text-muted hover:text-ink">← Übersicht</button>
@@ -218,7 +220,10 @@ function Intro({ lesson, onStart, onExit }: { lesson: LessonDef; onStart: () => 
         {lesson.words.map(([pt, de, note]) => (
           <li key={pt} className="flex items-center gap-3 px-4 py-2.5">
             <AudioButtons text={pt} />
-            <span lang="pt-PT" className="font-medium">{pt}</span>
+            <span>
+              <span lang="pt-PT" className="font-medium">{pt}</span>
+              <SoundHint sound={lexicon.get(pt)?.sound} className="mt-0 text-xs" />
+            </span>
             <span className="ml-auto text-right text-sm text-muted">
               {de}
               {note && <span className="block text-xs">{note}</span>}
@@ -226,6 +231,17 @@ function Intro({ lesson, onStart, onExit }: { lesson: LessonDef; onStart: () => 
           </li>
         ))}
       </ul>
+
+      {verbs.length > 0 && (
+        <>
+          <h2 className="mb-3 mt-8 font-medium">{verbs.length === 1 ? "Neues Verb" : "Neue Verben"} – alle Formen</h2>
+          <div className="space-y-4">
+            {verbs.map((v) => (
+              <ConjugationTable key={v.inf} verb={v} />
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="sticky bottom-0 -mx-4 mt-8 bg-gradient-to-t from-bg via-bg to-transparent px-4 pb-6 pt-8">
         <button className="btn-primary w-full text-lg" onClick={onStart} autoFocus>
