@@ -1,22 +1,16 @@
+import { stripAccents, textKey } from "./text";
+
+export { stripAccents, tokenize } from "./text";
+
 export type CheckResult = {
   correct: boolean;
   /** Hinweis bei knapp richtigen Antworten (Akzente, Tippfehler) */
   note?: string;
 };
 
+/** Für den Antwortvergleich: wie textKey, zusätzlich zählen Bindestriche als Leerzeichen */
 export function normalize(text: string) {
-  return text
-    .toLowerCase()
-    .normalize("NFC")
-    .replace(/[’`´]/g, "'")
-    .replace(/[.,!?¿¡;:"“”„«»()]/g, " ")
-    .replace(/-/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-export function stripAccents(text: string) {
-  return text.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
+  return textKey(text).replace(/-/g, " ").replace(/\s+/g, " ").trim();
 }
 
 export function levenshtein(a: string, b: string) {
@@ -71,12 +65,4 @@ export function similarity(a: string, b: string) {
   const y = stripAccents(normalize(b));
   if (!x.length && !y.length) return 1;
   return 1 - levenshtein(x, y) / Math.max(x.length, y.length);
-}
-
-/** Satz in Wörter für die Wortbausteine zerlegen */
-export function tokenize(sentence: string) {
-  return sentence
-    .replace(/[.,!?¿¡;:"“”„«»]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean);
 }

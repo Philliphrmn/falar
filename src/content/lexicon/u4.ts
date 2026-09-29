@@ -11,7 +11,6 @@ export const u4: UnitLexicon = {
     "o português": { pos: "noun", sound: "u purtuGESCH" },
     "o inglês": { pos: "noun", sound: "u inGLESCH" },
     "um pouco": { pos: "phrase", sound: "um POku" },
-    "também": { pos: "adv", sound: "tãmBÃI" },
     "todos os dias": { pos: "phrase", sound: "TOdusch usch DIasch" },
     // pode-repetir
     "o senhor": { pos: "noun", sound: "u ßNJOR" },
@@ -19,7 +18,6 @@ export const u4: UnitLexicon = {
     "pode": { pos: "verb", verb: "poder", sound: "PODe" },
     "repetir": { pos: "verb", verb: "repetir", sound: "rrpeTIR" },
     "devagar": { pos: "adv", sound: "dwaGAR" },
-    "mais": { pos: "adv", sound: "MAISCH" },
     "perceber": { pos: "verb", verb: "perceber", sound: "prßeBER" },
     "dizer": { pos: "verb", verb: "dizer", sound: "diSER" },
     "a palavra": { pos: "noun", sound: "a paLAwra" },
@@ -64,7 +62,6 @@ export const u4: UnitLexicon = {
     "deitar-se": { pos: "verb", verb: "deitar-se", sound: "däiTARß" },
     "tomar duche": { pos: "verb", verb: "tomar", sound: "tuMAR DUsch" },
     "sair": { pos: "verb", verb: "sair", sound: "ßaIR" },
-    "chegar": { pos: "verb", verb: "chegar", sound: "schGAR" },
     "de manhã": { pos: "phrase", sound: "d maNJÃ" },
     "à noite": { pos: "phrase", sound: "a NOIT" },
     "sempre": { pos: "adv", sound: "ßEMPR" },

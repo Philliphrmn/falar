@@ -99,7 +99,7 @@ export function Player({ exercises, onExit, onFinish }: Props) {
         setSolvedCount(solved.current.size);
       } else {
         // Falsch beantwortete Übung kommt am Ende noch einmal
-        setQueue((q) => [...q, { ex: { ...ex, key: ex.key }, attempt: attempt + 1 }]);
+        setQueue((q) => [...q, { ex, attempt: attempt + 1 }]);
       }
       setOutcome(o);
       if (o.audio && (!o.correct || o.say)) speak(o.audio);
@@ -122,8 +122,12 @@ export function Player({ exercises, onExit, onFinish }: Props) {
     setOutcome(null);
     setCheck(null);
     let n = pos + 1;
-    // Sprechübungen überspringen, wenn deaktiviert
-    while (n < queue.length && noSpeaking && queue[n].ex.kind === "speak") n++;
+    // Sprechübungen überspringen, wenn deaktiviert – sie zählen trotzdem als erledigt
+    while (n < queue.length && noSpeaking && queue[n].ex.kind === "speak") {
+      solved.current.add(queue[n].ex.key);
+      n++;
+    }
+    setSolvedCount(solved.current.size);
     if (n >= queue.length) finish();
     else setPos(n);
   }, [pos, queue, noSpeaking, finish, setCheck]);
@@ -138,6 +142,8 @@ export function Player({ exercises, onExit, onFinish }: Props) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
+      // Enter heißt immer „Prüfen“ bzw. „Weiter“ – auch wenn noch eine Antwort-Kachel den Fokus hat
+      // (Knöpfe lassen sich per Leertaste auslösen)
       e.preventDefault();
       if (outcome) next();
       else check();

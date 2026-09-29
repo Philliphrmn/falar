@@ -1,6 +1,6 @@
 "use client";
 
-import { PERSONS, PERSONS_DE, type VerbDef } from "@/content";
+import { PERSONS, type VerbDef } from "@/content";
 import { speak } from "@/lib/speech";
 import { AudioButtons } from "./player/Exercises";
 import { IconSpeaker } from "./icons";
@@ -26,7 +26,7 @@ export function ConjugationTable({ verb, compact = false }: { verb: VerbDef; com
       <ul>
         {verb.present.map((form, i) => (
           <li key={i}>
-            <FormLine pt={form} pronoun={PERSONS[i]} de={verb.presentDe?.[i] ?? PERSONS_DE[i]} />
+            <FormLine pt={form} pronoun={PERSONS[i]} de={verb.presentDe[i]} />
           </li>
         ))}
       </ul>

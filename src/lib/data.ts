@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import { addDays, dayKey } from "./date";
 import { nextState, type ReviewState } from "./srs";
+import { BACKFILL_PER_DAY } from "./learning";
 
 export type Settings = { daily_goal_xp: number; speech_rate: number };
 export type LessonProgress = { lesson_id: string; best_score: number; times_completed: number };
@@ -14,7 +15,8 @@ function must<T>(res: { data: T | null; error: { message: string } | null }): T 
 }
 
 export async function loadAll(userId: string) {
-  const since = dayKey(addDays(new Date(), -120));
+  // Genug Verlauf für die Serie (Streak) – sie zählt nur lückenlose Tage
+  const since = dayKey(addDays(new Date(), -730));
   const [settings, progress, activity, reviews] = await Promise.all([
     supabase.from("user_settings").select("daily_goal_xp, speech_rate").eq("user_id", userId).maybeSingle(),
     supabase.from("lesson_progress").select("lesson_id, best_score, times_completed").eq("user_id", userId),
@@ -46,6 +48,8 @@ export async function saveSession(
     results: ItemResult[];
     xp: number;
     lesson?: { id: string; score: number; prev?: LessonProgress };
+    /** false = freies Üben: Wiederholungs-Boxen bleiben unverändert */
+    srs?: boolean;
     reviews: Map<string, ReviewState>;
     today?: ActivityDay;
   },
@@ -62,15 +66,17 @@ export async function saveSession(
   }));
 
   const day = dayKey(now);
+  // Nur auf den heutigen Eintrag aufaddieren – nicht auf gestern, falls die App über Mitternacht offen war
+  const today = opts.today?.day === day ? opts.today : undefined;
   const writes: PromiseLike<{ error: { message: string } | null }>[] = [
     supabase.from("activity_days").upsert({
       user_id: userId,
       day,
-      xp: (opts.today?.xp ?? 0) + opts.xp,
-      lessons: (opts.today?.lessons ?? 0) + (opts.lesson ? 1 : 0),
+      xp: (today?.xp ?? 0) + opts.xp,
+      lessons: (today?.lessons ?? 0) + (opts.lesson ? 1 : 0),
     }),
   ];
-  if (reviewRows.length) writes.push(supabase.from("review_items").upsert(reviewRows));
+  if (reviewRows.length && opts.srs !== false) writes.push(supabase.from("review_items").upsert(reviewRows));
   if (opts.lesson) {
     writes.push(
       supabase.from("lesson_progress").upsert({
@@ -92,7 +98,7 @@ export async function saveSession(
  * in bereits abgeschlossenen Lektionen). Bestehende Einträge bleiben unangetastet.
  * Damit nicht alles auf einmal fällig wird, verteilt sich das auf mehrere Tage.
  */
-export async function addMissingReviews(userId: string, itemIds: string[], perDay = 12) {
+export async function addMissingReviews(userId: string, itemIds: string[], perDay = BACKFILL_PER_DAY) {
   if (!itemIds.length) return;
   const start = new Date();
   start.setHours(4, 0, 0, 0);

@@ -96,7 +96,7 @@ export type VerbDef = {
   de: string;
   present: PresentForms;
   /** Deutsche Übersetzung der Präsensformen, z. B. ["ich heiße", "du heißt", …] */
-  presentDe?: PresentForms;
+  presentDe: PresentForms;
   /** Weitere Formen, die im Kurs vorkommen, z. B. Imperativ „siga“ oder „queria“ */
   extra?: { label: string; forms: [pt: string, de: string][] }[];
   /** Kurzer Hinweis, z. B. „unregelmäßig“ */
@@ -105,10 +105,11 @@ export type VerbDef = {
 };
 
 export type UnitLexicon = {
-  /** Schlüssel: portugiesischer Text genau wie in LessonDef.words */
+  /**
+   * Schlüssel: portugiesischer Text genau wie in LessonDef.words. Jede Vokabel steht im
+   * Lexikon der Unit, in der sie zum ersten Mal vorkommt (alle Verben: lexicon/verbs.ts).
+   */
   words: Record<string, LexEntry>;
-  /** Verben, die in dieser Unit zum ersten Mal vorkommen */
-  verbs?: VerbDef[];
   /**
    * Abgewandelte Formen, die in Sätzen vorkommen, aber keine eigene Vokabel sind:
    * Form (klein) → Vokabel (genau wie in words), z. B. „filhos“ → „o filho“.

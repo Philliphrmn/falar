@@ -2,6 +2,7 @@
 
 import clips from "@/content/audio.json";
 import { supabase } from "./supabase";
+import { textKey } from "./text";
 
 let speechRate = 0.9;
 export function setSpeechRate(rate: number) {
@@ -38,39 +39,32 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
  * Vertonte Aufnahmen (Azure Neural, pt-PT), erzeugt mit scripts/generate-audio.mjs.
  * f = Frauenstimme (Standard), m = Männerstimme (z. B. deine Rolle im Dialog).
  */
-export type Voice = "f" | "m";
+export type { Voice } from "@/content/speakable";
+import type { Voice } from "@/content/speakable";
 type SpeakOpts = { slow?: boolean; voice?: Voice };
 
 const clipIndex = clips as Record<Voice, Record<string, string>>;
 export const hasRecordedAudio = Object.keys(clipIndex.f).length > 0;
 
-/** Schlüssel ohne Satzzeichen und Großschreibung – so findet auch „Siga“ aus einem Satz seine Aufnahme */
-export const clipKey = (text: string) =>
-  text
-    .toLowerCase()
-    .normalize("NFC")
-    .replace(/[.,!?¿¡;:"“”„«»()…]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
+/** Aufnahmen werden über textKey gefunden – so klingt auch „Siga“ aus einem Satz wie „siga“ */
 const looseIndex: Record<Voice, Map<string, string>> = {
-  f: new Map(Object.entries(clipIndex.f).map(([t, f]) => [clipKey(t), f])),
-  m: new Map(Object.entries(clipIndex.m).map(([t, f]) => [clipKey(t), f])),
+  f: new Map(Object.entries(clipIndex.f).map(([t, f]) => [textKey(t), f])),
+  m: new Map(Object.entries(clipIndex.m).map(([t, f]) => [textKey(t), f])),
 };
 
 function clipFor(text: string, voice: Voice = "f") {
   return (
     clipIndex[voice]?.[text] ??
     clipIndex.f[text] ??
-    looseIndex[voice].get(clipKey(text)) ??
-    looseIndex.f.get(clipKey(text))
+    looseIndex[voice].get(textKey(text)) ??
+    looseIndex.f.get(textKey(text))
   );
 }
 
 /** Für Texte ohne Aufnahme: vom Server vertonen lassen (Azure), im Speicher zwischengespeichert */
 const remoteCache = new Map<string, Promise<string>>();
 function remoteClip(text: string, voice: Voice): Promise<string> {
-  const k = `${voice}|${clipKey(text)}`;
+  const k = `${voice}|${textKey(text)}`;
   let p = remoteCache.get(k);
   if (!p) {
     p = (async () => {

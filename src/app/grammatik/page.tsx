@@ -11,7 +11,7 @@ export default function GrammarPage() {
       <p className="mt-2 text-muted">Alle Erklärungen aus den Lektionen zum Nachschlagen.</p>
       {course.map((unit) => (
         <section key={unit.id} className="mt-10">
-          <h2 className="mb-4 text-sm uppercase tracking-wide text-muted">{unit.title}</h2>
+          <h2 className="mb-4 text-sm uppercase tracking-wide text-muted" lang="pt-PT">{unit.title}</h2>
           <div className="space-y-4">
             {unit.lessons.map((l) => (
               <div key={l.id} id={l.id} className="space-y-4">

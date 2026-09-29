@@ -59,8 +59,6 @@ export type Exercise =
       answer: string;
     });
 
-export type ExerciseKind = Exercise["kind"];
-
 let counter = 0;
 const key = () => `ex${++counter}`;
 
@@ -216,6 +214,31 @@ function conjugate(item: Item, mode: "choice" | "type", avoidPerson?: number): E
   };
 }
 
+/**
+ * Teilt Wörter in Gruppen für „Finde die Paare“ (3–5 Paare). Gleiche Übersetzungen
+ * (obrigado/obrigada) kommen nie in dieselbe Gruppe; zu kleine Gruppen werden mit
+ * bereits geübten Wörtern aufgefüllt.
+ */
+function matchGroups(rest: Item[], filler: Item[]): Item[][] {
+  const groups: Item[][] = [];
+  let queue = rest.length ? [...rest] : filler.slice(0, 5);
+  while (queue.length) {
+    const group: Item[] = [];
+    const skipped: Item[] = [];
+    for (const w of queue) {
+      if (group.length < 5 && !group.some((g) => lower(g.de) === lower(w.de))) group.push(w);
+      else skipped.push(w);
+    }
+    for (const w of filler) {
+      if (group.length >= 3) break;
+      if (!group.some((g) => g.id === w.id || lower(g.de) === lower(w.de))) group.push(w);
+    }
+    groups.push(group);
+    queue = skipped;
+  }
+  return groups;
+}
+
 export type GenOptions = { speech: boolean; audio: boolean };
 
 /** Übungsfolge für eine Lektion (~16 Aufgaben) */
@@ -241,8 +264,8 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
     if (i < 2) verbEx.push(conjugate(v, "type", first.person)!);
   });
   intro.push(...verbEx);
-  const rest = words.slice(6);
-  const matchItems = (rest.length >= 4 ? rest : words).slice(0, 5);
+  // Alle übrigen Wörter kommen in Paare-Übungen – so wird jede Vokabel mindestens einmal abgefragt
+  const matches = matchGroups(words.slice(6), words.slice(0, 6)).map(match);
   const wordExtra: Exercise[] = [];
   if (opts.audio) wordExtra.push(listenChoice(shuffle(words)[0], rawWords));
   wordExtra.push(choice(shuffle(words)[0], "de-pt", rawWords));
@@ -263,7 +286,7 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
 
   // Reihenfolge: erst Wörter kennenlernen, dann Sätze – Wortübungen dazwischen gestreut
   const tail: Exercise[] = [];
-  const extras = [match(matchItems), ...wordExtra];
+  const extras = [...matches, ...wordExtra];
   sentenceEx.forEach((s, i) => {
     tail.push(s);
     if (i % 2 === 1 && extras.length) tail.push(extras.shift()!);
@@ -273,7 +296,7 @@ export function lessonExercises(lesson: LessonDef, opts: GenOptions): Exercise[]
 }
 
 /** Zum Schluss: Dialog hören und verstehen, dann selbst die eigene Rolle sprechen */
-export function dialogueExercises(lesson: LessonDef, opts: GenOptions): Exercise[] {
+function dialogueExercises(lesson: LessonDef, opts: GenOptions): Exercise[] {
   const d = lesson.dialogue;
   if (!d) return [];
   const itemId = `d:${lesson.id}`;

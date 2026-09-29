@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { VOICE_TEST } from "@/content/speakable";
 import { saveSettings } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { canRecognize, canRecord, canSpeak, getPortugueseVoice, hasEuropeanVoice, hasRecordedAudio, setSpeechRate, speak } from "@/lib/speech";
@@ -45,6 +46,12 @@ export function SettingsForm() {
     } catch (e) {
       setStatus(`Fehler: ${e instanceof Error ? e.message : e}`);
     }
+  }
+
+  // Tempo speichern, sobald der Regler losgelassen wird – mit Maus, Finger oder Pfeiltasten
+  function commitRate() {
+    void update({ speech_rate: settings.speech_rate });
+    speak(VOICE_TEST);
   }
 
   return (
@@ -92,13 +99,11 @@ export function SettingsForm() {
               setSettingsLocal({ ...settings, speech_rate: rate });
               setSpeechRate(rate);
             }}
-            onPointerUp={() => {
-              void update({ speech_rate: settings.speech_rate });
-              speak("Olá! Bom dia, como estás?");
-            }}
+            onPointerUp={commitRate}
+            onKeyUp={(e) => e.key.startsWith("Arrow") && commitRate()}
           />
         </label>
-        <button className="btn-ghost mt-4" onClick={() => speak("Olá! Bom dia, como estás?")}>
+        <button className="btn-ghost mt-4" onClick={() => speak(VOICE_TEST)}>
           Stimme testen
         </button>
         <div className="mt-4 space-y-1 text-sm text-muted">

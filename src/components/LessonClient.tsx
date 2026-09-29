@@ -2,6 +2,7 @@
 
 import { getLesson } from "@/content";
 import { lessonExercises } from "@/lib/exercises";
+import { XP } from "@/lib/learning";
 import { SessionRunner } from "./SessionRunner";
 
 export function LessonClient({ lessonId }: { lessonId: string }) {
@@ -10,7 +11,7 @@ export function LessonClient({ lessonId }: { lessonId: string }) {
     <SessionRunner
       lesson={lesson}
       title={lesson.title}
-      xpBase={10}
+      xpBase={XP.lesson}
       build={(opts) => lessonExercises(lesson, opts)}
     />
   );

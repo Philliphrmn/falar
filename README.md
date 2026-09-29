@@ -30,8 +30,11 @@ Dann http://localhost:3000 öffnen und registrieren.
 | --- | --- |
 | `src/content/units/` | Alle Lektionen, eine Datei pro Unit: Wörter, Sätze, Grammatik, Dialoge. Den portugiesischen Text bestehender Wörter/Sätze nicht ändern – daraus entstehen die Fortschritts-IDs. |
 | `src/content/lexicon/` | Wortart und Aussprachehilfe je Vokabel (pro Unit) und Konjugationstabellen aller Verben (`verbs.ts`) |
-| `scripts/check-content.mts` | `npm run check`: prüft, dass jedes Wort in Sätzen/Dialogen als Vokabel eingeführt ist und alle Einträge im Lexikon stehen |
+| `scripts/check-content.mts` | `npm run check`: prüft alle Regeln aus `docs/INHALT.md`; läuft automatisch vor jedem Build |
+| `docs/INHALT.md` | **Regeln für Inhalte und Lernlogik** – vor jeder neuen Lektion lesen |
 | `src/lib/exercises.ts` | Erzeugt aus einer Lektion automatisch die Übungsfolge |
+| `src/lib/learning.ts` | Stellschrauben der Lernlogik (XP, Sitzungsgröße …) |
+| `src/lib/text.ts` | Gemeinsame Textregeln (Zerlegen, Vergleichen, Aufnahmen finden) |
 | `src/lib/answer.ts` | Antwortprüfung (Akzente, Tippfehler, optionale Pronomen) |
 | `src/lib/srs.ts` | Wiederholungs-Logik (Leitner) |
 | `src/lib/speech.ts` | Sprachausgabe (Aufnahmen, sonst Azure über `/api/tts`, zuletzt Gerätestimme) und Spracherkennung |

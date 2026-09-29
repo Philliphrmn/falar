@@ -35,10 +35,6 @@ export function getLesson(id: string) {
   return allLessons.find((l) => l.id === id);
 }
 
-export function getUnitOfLesson(id: string) {
-  return course.find((u) => u.lessons.some((l) => l.id === id));
-}
-
 /** Verben, die in dieser Lektion zum ersten Mal vorkommen (über Vokabeln mit lexicon.verb) */
 export function lessonVerbs(lesson: LessonDef): VerbDef[] {
   return verbsByLesson.get(lesson.id) ?? [];
