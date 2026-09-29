@@ -33,7 +33,8 @@ export async function POST(request: Request) {
 
   // Einzelwörter etwas langsamer, wie bei den vorab erzeugten Aufnahmen
   const rate = text.includes(" ") ? "-5%" : "-12%";
-  const ssml = `<speak version="1.0" xml:lang="pt-PT"><voice name="${voice}"><prosody rate="${rate}">${escapeXml(text)}</prosody></voice></speak>`;
+  // Stille am Anfang, damit Geräte den ersten Laut nicht verschlucken (siehe generate-audio)
+  const ssml = `<speak version="1.0" xml:lang="pt-PT" xmlns:mstts="http://www.w3.org/2001/mstts"><voice name="${voice}"><mstts:silence type="Leading-exact" value="300ms"/><prosody rate="${rate}">${escapeXml(text)}</prosody></voice></speak>`;
   const res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
     method: "POST",
     headers: {

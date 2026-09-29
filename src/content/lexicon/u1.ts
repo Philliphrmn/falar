@@ -62,7 +62,7 @@ export const u1: UnitLexicon = {
     "nove": { pos: "num", sound: "NOW" },
     "dez": { pos: "num", sound: "DÄSCH" },
     "vinte": { pos: "num", sound: "WINT" },
-    "tenho": { pos: "verb", verb: "ter", sound: "TÄNju" },
+    "tenho": { pos: "verb", verb: "ter", sound: "TANju" },
     "os anos": { pos: "noun", sound: "usch ANusch" },
     "quantos": { pos: "question", sound: "KWANtusch" },
     "também": { pos: "adv", sound: "tãmBÃI" },

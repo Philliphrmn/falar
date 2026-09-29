@@ -91,15 +91,83 @@ function remoteClip(text: string, voice: Voice): Promise<string> {
 }
 
 let current: HTMLAudioElement | null = null;
+let currentSource: AudioBufferSourceNode | null = null;
+
+/*
+ * Wiedergabe über Web Audio statt <audio>: iOS zeigt dann kein „Wird abgespielt“ oben im
+ * Display, und der einmal gestartete AudioContext verschluckt keine Anfangslaute.
+ */
+let ctx: AudioContext | null = null;
+function audioContext(): AudioContext | null {
+  if (ctx) return ctx;
+  const Ctor = getAudioContextCtor();
+  if (!Ctor) return null;
+  ctx = new Ctor();
+  // Auf dem iPhone auch bei eingeschaltetem Stummschalter hörbar (Safari 16.4+)
+  const nav = navigator as Navigator & { audioSession?: { type: string } };
+  if (nav.audioSession) nav.audioSession.type = "playback";
+  return ctx;
+}
+
+// Der AudioContext darf erst nach einer Nutzeraktion starten – bei der ersten Berührung freischalten
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    const c = audioContext();
+    if (c && c.state !== "running") void c.resume();
+  };
+  window.addEventListener("pointerdown", unlock, { capture: true });
+  window.addEventListener("keydown", unlock, { capture: true });
+}
+
+const bufferCache = new Map<string, Promise<AudioBuffer>>();
+function loadBuffer(c: AudioContext, src: string): Promise<AudioBuffer> {
+  let p = bufferCache.get(src);
+  if (!p) {
+    p = fetch(src)
+      .then((r) => {
+        if (!r.ok) throw new Error(`audio ${r.status}`);
+        return r.arrayBuffer();
+      })
+      .then((data) => new Promise<AudioBuffer>((res, rej) => c.decodeAudioData(data, res, rej)));
+    p.catch(() => bufferCache.delete(src));
+    bufferCache.set(src, p);
+  }
+  return p;
+}
 
 function playClip(src: string, opts: SpeakOpts): Promise<void> {
+  // Standard-Tempo 0.9 in den Einstellungen entspricht der Originalaufnahme
+  const base = Math.min(1.5, Math.max(0.5, speechRate / 0.9));
+  const rate = opts.slow ? Math.max(0.5, base * 0.7) : base;
+  const c = audioContext();
+  // Web Audio verändert bei anderem Tempo die Tonhöhe – dann das <audio>-Element (hält die Tonhöhe)
+  if (!c || Math.abs(rate - 1) > 0.01) return playElement(src, rate);
+  stopSpeaking();
+  const token = speakToken;
+  return (async () => {
+    if (c.state !== "running") await c.resume();
+    const buffer = await loadBuffer(c, src);
+    if (token !== speakToken) return;
+    await new Promise<void>((resolve) => {
+      const node = c.createBufferSource();
+      node.buffer = buffer;
+      node.connect(c.destination);
+      node.onended = () => {
+        if (currentSource === node) currentSource = null;
+        resolve();
+      };
+      currentSource = node;
+      node.start();
+    });
+  })();
+}
+
+function playElement(src: string, rate: number): Promise<void> {
   return new Promise((resolve, reject) => {
     stopSpeaking();
     const a = new Audio(src);
     current = a;
-    // Standard-Tempo 0.9 in den Einstellungen entspricht der Originalaufnahme
-    const rate = Math.min(1.5, Math.max(0.5, speechRate / 0.9));
-    a.playbackRate = opts.slow ? Math.max(0.5, rate * 0.7) : rate;
+    a.playbackRate = rate;
     a.onended = () => resolve();
     a.onerror = () => reject(new Error("audio"));
     a.play().catch(reject);
@@ -150,6 +218,13 @@ function synthesize(text: string, opts: SpeakOpts): Promise<void> {
 
 export function stopSpeaking() {
   speakToken++;
+  if (currentSource) {
+    // onended des gestoppten Knotens löst sein Promise auf
+    try {
+      currentSource.stop();
+    } catch {}
+    currentSource = null;
+  }
   if (current) {
     current.pause();
     current = null;
