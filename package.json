@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run check",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "audio": "tsx scripts/generate-audio.mts",
-    "check": "tsx scripts/check-content.mts"
+    "check": "tsx scripts/check-content.mts",
+    "audio": "tsx scripts/generate-audio.mts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",

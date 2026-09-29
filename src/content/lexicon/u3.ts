@@ -31,7 +31,6 @@ export const u3: UnitLexicon = {
     "quando": { pos: "question", sound: "KWANdu" },
     "partir": { pos: "verb", verb: "partir", sound: "parTIR" },
     "o euro": { pos: "noun", sound: "u ÄUru" },
-    "às": { pos: "prep", sound: "ASCH" },
     // compras
     "quanto custa": { pos: "phrase", verb: "custar", sound: "KUANtu KUSchta" },
     "caro": { pos: "adj", sound: "KAru" },

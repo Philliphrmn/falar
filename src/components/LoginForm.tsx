@@ -15,20 +15,25 @@ export function LoginForm() {
     e.preventDefault();
     setBusy(true);
     setMessage(null);
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMessage({ ok: false, text: translate(error.message) });
-    } else {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) setMessage({ ok: false, text: translate(error.message) });
-      else if (!data.session)
-        setMessage({ ok: true, text: "Fast geschafft: Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach." });
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) setMessage({ ok: false, text: translate(error.message) });
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (error) setMessage({ ok: false, text: translate(error.message) });
+        else if (!data.session)
+          setMessage({ ok: true, text: "Fast geschafft: Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach." });
+      }
+    } catch {
+      setMessage({ ok: false, text: "Keine Verbindung – bitte prüfe dein Internet und versuch es noch einmal." });
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   return (
@@ -50,14 +55,14 @@ export function LoginForm() {
               className="input"
               type="password"
               required
-              minLength={6}
+              minLength={mode === "signup" ? 6 : undefined}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
           {message && (
-            <p className={`rounded-lg px-3 py-2 text-sm ${message.ok ? "bg-ok-soft text-ok" : "bg-bad-soft text-bad"}`}>{message.text}</p>
+            <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? "bg-ok-soft text-ok" : "bg-bad-soft text-bad"}`}>{message.text}</p>
           )}
           <button className="btn-primary w-full" disabled={busy}>
             {busy ? "…" : mode === "login" ? "Anmelden" : "Registrieren"}

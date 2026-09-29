@@ -7,12 +7,13 @@ import { LoginForm } from "./LoginForm";
 import { Wordmark } from "./Wordmark";
 import { IconBook, IconFlame, IconList, IconPath, IconRepeat, IconSettings } from "./icons";
 
+/** Navigation; `short` = Beschriftung unten auf dem Handy, `inHeader` = als Text oben am Desktop */
 const NAV = [
-  { href: "/", label: "Lernen", Icon: IconPath },
-  { href: "/wiederholen", label: "Wiederholen", Icon: IconRepeat },
-  { href: "/vokabeln", label: "Vokabeln", Icon: IconList },
-  { href: "/grammatik", label: "Grammatik", Icon: IconBook },
-  { href: "/einstellungen", label: "Einstellungen", Icon: IconSettings },
+  { href: "/", label: "Lernen", short: "Lernen", Icon: IconPath, inHeader: true },
+  { href: "/wiederholen", label: "Wiederholen", short: "Wiederholen", Icon: IconRepeat, inHeader: true },
+  { href: "/vokabeln", label: "Vokabeln", short: "Vokabeln", Icon: IconList, inHeader: true },
+  { href: "/grammatik", label: "Grammatik", short: "Grammatik", Icon: IconBook, inHeader: true },
+  { href: "/einstellungen", label: "Einstellungen", short: "Einstellungen", Icon: IconSettings, inHeader: false },
 ];
 
 /** Seitenrahmen mit Navigation; zeigt das Login, solange niemand angemeldet ist. */
@@ -28,11 +29,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-4xl items-center gap-6 px-4">
           <Link href="/"><Wordmark /></Link>
-          <nav className="hidden flex-1 gap-1 sm:flex">
-            {NAV.slice(0, 4).map(({ href, label }) => (
+          <nav className="hidden flex-1 gap-1 sm:flex" aria-label="Hauptnavigation">
+            {NAV.filter((n) => n.inHeader).map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
+                aria-current={pathname === href ? "page" : undefined}
                 className={`rounded-lg px-3 py-1.5 text-sm transition hover:bg-surface-2 ${
                   pathname === href ? "bg-surface-2 font-medium" : "text-muted"
                 }`}
@@ -45,10 +47,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3 sm:ml-0">
-            <span className="flex items-center gap-1 text-sm text-warm" title="Tage in Folge">
+            <span className="flex items-center gap-1 text-sm text-warm" title="Tage in Folge" aria-label={`${streak} Tage in Folge`}>
               <IconFlame className="h-4 w-4" /> {streak}
             </span>
-            <Link href="/einstellungen" className="hidden text-muted hover:text-ink sm:block" aria-label="Einstellungen">
+            <Link
+              href="/einstellungen"
+              className={`hidden hover:text-ink sm:block ${pathname === "/einstellungen" ? "text-ink" : "text-muted"}`}
+              aria-label="Einstellungen"
+              aria-current={pathname === "/einstellungen" ? "page" : undefined}
+            >
               <IconSettings />
             </Link>
           </div>
@@ -57,25 +64,26 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {error && (
         <div className="mx-auto mt-4 max-w-4xl px-4">
-          <p className="rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">Fehler beim Laden: {error}</p>
+          <p role="alert" className="rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">Fehler beim Laden: {error}</p>
         </div>
       )}
 
       <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-bg/95 backdrop-blur sm:hidden">
-        {NAV.map(({ href, label, Icon }) => (
+      <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-bg/95 backdrop-blur sm:hidden" aria-label="Hauptnavigation">
+        {NAV.map(({ href, short, Icon }) => (
           <Link
             key={href}
             href={href}
+            aria-current={pathname === href ? "page" : undefined}
             className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] ${
               pathname === href ? "text-accent" : "text-muted"
             }`}
           >
             <Icon />
-            {label.replace("Einstellungen", "Mehr")}
+            {short}
             {href === "/wiederholen" && dueIds.length > 0 && (
-              <span className="absolute right-[22%] top-1 h-2 w-2 rounded-full bg-accent" />
+              <span className="absolute right-[22%] top-1 h-2 w-2 rounded-full bg-accent" aria-label={`${dueIds.length} fällig`} />
             )}
           </Link>
         ))}

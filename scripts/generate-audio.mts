@@ -12,11 +12,9 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { course } from "../src/content/course";
-import { verbs } from "../src/content/lexicon";
+import { speakableTexts, type Voice } from "../src/content/speakable";
 
 const VOICES = { f: "pt-PT-RaquelNeural", m: "pt-PT-DuarteNeural" } as const;
-type Voice = keyof typeof VOICES;
 
 const key = process.env.AZURE_SPEECH_KEY;
 const region = process.env.AZURE_SPEECH_REGION ?? "westeurope";
@@ -30,41 +28,9 @@ const outDir = join(root, "public", "audio");
 const manifestPath = join(root, "src", "content", "audio.json");
 mkdirSync(outDir, { recursive: true });
 
-// Alle Texte einsammeln, die die App vorlesen kann
-const wanted: Record<Voice, Set<string>> = { f: new Set(), m: new Set() };
-const add = (text: string, voice: Voice = "f") => wanted[voice].add(text);
-for (const unit of course) {
-  for (const l of unit.lessons) {
-    l.words.forEach(([pt]) => add(pt));
-    l.sentences.forEach(([pt]) => add(pt));
-    l.grammar?.examples?.forEach((e) => add(e.pt));
-    l.sound?.examples?.forEach((e) => add(e.pt));
-    // Deine Rolle im Dialog spricht die Männerstimme
-    l.dialogue?.lines.forEach(([who, pt]) => add(pt, who === "b" ? "m" : "f"));
-  }
-  unit.speaking?.forEach((t) => t.model.forEach((m) => add(m.pt)));
-}
-add("Olá! Bom dia, como estás?"); // Stimmtest in den Einstellungen
+const wanted = speakableTexts();
 
-// Alle Verbformen (Konjugationstabellen, Übungen)
-for (const v of verbs.values()) {
-  [v.inf, ...v.present, ...(v.extra ?? []).flatMap((x) => x.forms.map(([pt]) => pt))].forEach((t) => add(t));
-}
-
-// Jedes einzelne Wort, damit auch angetippte Bausteine („Siga“) die Azure-Stimme bekommen.
-// Kleingeschrieben und ohne Satzzeichen – die App sucht Aufnahmen genauso.
-const clipKey = (text: string) =>
-  text.toLowerCase().normalize("NFC").replace(/[.,!?¿¡;:"“”„«»()…]/g, " ").replace(/\s+/g, " ").trim();
-const known = new Set([...wanted.f].map(clipKey));
-for (const text of [...wanted.f, ...wanted.m]) {
-  for (const token of clipKey(text).split(" ")) {
-    if (token && !/^\d+$/.test(token) && token !== "-" && token !== "–" && !known.has(token)) {
-      known.add(token);
-      add(token);
-    }
-  }
-}
-
+// Stille am Anfang: Viele Geräte (iPhone, Bluetooth) verschlucken die ersten Zehntelsekunden
 const LEADING_SILENCE = "300ms";
 const fileName = (text: string, voice: Voice) =>
   `${voice}-${createHash("sha1").update(`${VOICES[voice]}|${LEADING_SILENCE}|${text}`).digest("hex").slice(0, 16)}.mp3`;

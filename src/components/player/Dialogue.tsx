@@ -237,6 +237,8 @@ function MyTurn({
   const [processing, setProcessing] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const stopRef = useRef<() => void>(() => {});
+  // Spracherkennung beenden, wenn die Übung verlassen wird
+  useEffect(() => () => stopRef.current(), []);
 
   function fail(msg: string) {
     const n = tries + 1;
@@ -369,6 +371,8 @@ export function ProduceEx({ ex, locked, complete }: ExerciseProps<"produce">) {
   useEffect(() => () => {
     if (take) URL.revokeObjectURL(take);
   }, [take]);
+  // Mikrofon freigeben, wenn die Übung verlassen wird, während noch aufgenommen wird
+  useEffect(() => () => void stopRef.current?.().catch(() => {}), []);
 
   async function toggle() {
     if (recording && stopRef.current) {

@@ -2,6 +2,7 @@
 
 import { course } from "@/content";
 import { unitExercises, unitProgressId } from "@/lib/exercises";
+import { XP } from "@/lib/learning";
 import { SessionRunner } from "./SessionRunner";
 
 export function UnitClient({ unitId }: { unitId: string }) {
@@ -9,7 +10,7 @@ export function UnitClient({ unitId }: { unitId: string }) {
   return (
     <SessionRunner
       title={`Abschluss: ${unit.title}`}
-      xpBase={20}
+      xpBase={XP.unit}
       progressId={unitProgressId(unit.id)}
       build={(opts) => unitExercises(unit, opts)}
     />

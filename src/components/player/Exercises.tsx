@@ -523,6 +523,8 @@ function ShadowSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"spea
   useEffect(() => () => {
     if (take) URL.revokeObjectURL(take);
   }, [take]);
+  // Mikrofon freigeben, wenn die Übung verlassen wird, während noch aufgenommen wird
+  useEffect(() => () => void stopRef.current?.().catch(() => {}), []);
 
   async function toggle() {
     if (state === "recording" && stopRef.current) {
@@ -607,6 +609,8 @@ function RecognizeSpeak({ ex, locked, complete, skipSpeaking }: ExerciseProps<"s
   const [heard, setHeard] = useState<string | null>(null);
   const [errorText, setErrorText] = useState("");
   const stopRef = useRef<() => void>(() => {});
+  // Spracherkennung beenden, wenn die Übung verlassen wird
+  useEffect(() => () => stopRef.current(), []);
 
   async function record() {
     setState("listening");

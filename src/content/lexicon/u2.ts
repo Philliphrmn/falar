@@ -3,10 +3,8 @@ import type { UnitLexicon } from "../types";
 export const u2: UnitLexicon = {
   words: {
     // cafe
-    "o café": { pos: "noun" },
     "a bica": { pos: "noun" },
     "o galão": { pos: "noun", sound: "gaLÃU" },
-    "a água": { pos: "noun", sound: "AGwa" },
     "o sumo": { pos: "noun", sound: "ßUmu" },
     "a laranja": { pos: "noun", sound: "laRÃNscha" },
     "o pão": { pos: "noun", sound: "PÃU" },
@@ -42,7 +40,6 @@ export const u2: UnitLexicon = {
     "o pai": { pos: "noun", sound: "PAI" },
     "a mãe": { pos: "noun", sound: "MÃI" },
     "os pais": { pos: "noun", sound: "PAISCH" },
-    "o irmão": { pos: "noun", sound: "irMÃU" },
     "a irmã": { pos: "noun", sound: "irMÃ" },
     "os irmãos": { pos: "noun", sound: "irMÃUSCH" },
     "o filho": { pos: "noun", sound: "FIlju" },

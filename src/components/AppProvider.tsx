@@ -32,12 +32,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [now, setNow] = useState(() => Date.now());
-  const [loaded, setLoaded] = useState(false);
+  /** Für welchen Nutzer die Daten geladen sind – nach Ab-/Anmelden nie fremde Daten zeigen */
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [progress, setProgress] = useState<LessonProgress[]>([]);
-  const [activity, setActivity] = useState<ActivityDay[]>([]);
-  const [reviews, setReviews] = useState<ReviewState[]>([]);
+  const [progressRows, setProgress] = useState<LessonProgress[]>([]);
+  const [activityRows, setActivity] = useState<ActivityDay[]>([]);
+  const [reviewRows, setReviews] = useState<ReviewState[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -50,7 +51,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const userId = session?.user.id;
 
-  const apply = useCallback((d: Awaited<ReturnType<typeof loadAll>>) => {
+  const apply = useCallback((uid: string, d: Awaited<ReturnType<typeof loadAll>>) => {
     setSettings(d.settings);
     setSpeechRate(d.settings.speech_rate);
     setProgress(d.progress);
@@ -58,22 +59,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setReviews(d.reviews);
     setError(null);
     setNow(Date.now());
-    setLoaded(true);
+    setLoadedFor(uid);
   }, []);
   const fail = useCallback((e: unknown) => setError(e instanceof Error ? e.message : String(e)), []);
 
   const refresh = useCallback(async () => {
-    if (userId) await loadAll(userId).then(apply, fail);
+    if (userId) await loadAll(userId).then((d) => apply(userId, d), fail);
   }, [userId, apply, fail]);
 
   // Neue Vokabeln/Verben in bereits abgeschlossenen Lektionen einmal pro Sitzung in die Wiederholung aufnehmen
+  const loaded = !!userId && loadedFor === userId;
   const backfilled = useRef<string | null>(null);
   useEffect(() => {
     if (!userId || !loaded || backfilled.current === userId) return;
     backfilled.current = userId;
-    const have = new Set(reviews.map((r) => r.item_id));
+    const have = new Set(reviewRows.map((r) => r.item_id));
     const missing = new Set<string>();
-    for (const p of progress) {
+    for (const p of progressRows) {
       const lesson = getLesson(p.lesson_id);
       if (!lesson) continue;
       const { words, sentences, verbs } = lessonItems(lesson);
@@ -82,13 +84,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
     if (missing.size) addMissingReviews(userId, [...missing]).then(refresh, fail);
-  }, [userId, loaded, reviews, progress, refresh, fail]);
+  }, [userId, loaded, reviewRows, progressRows, refresh, fail]);
 
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     loadAll(userId).then(
-      (d) => !cancelled && apply(d),
+      (d) => !cancelled && apply(userId, d),
       (e) => !cancelled && fail(e),
     );
     return () => {
@@ -96,8 +98,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [userId, apply, fail]);
 
+  // Zeit auffrischen, wenn die App wieder in den Vordergrund kommt (z. B. am nächsten Morgen)
+  useEffect(() => {
+    const tick = () => document.visibilityState === "visible" && setNow(Date.now());
+    document.addEventListener("visibilitychange", tick);
+    return () => document.removeEventListener("visibilitychange", tick);
+  }, []);
+
   const value = useMemo<AppState>(() => {
     const todayKey = dayKey(new Date(now));
+    // Daten eines vorher angemeldeten Nutzers nie anzeigen
+    const progress = loaded ? progressRows : [];
+    const activity = loaded ? activityRows : [];
+    const reviews = loaded ? reviewRows : [];
     return {
       session,
       authReady,
@@ -119,7 +132,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setSpeechRate(s.speech_rate);
       },
     };
-  }, [session, authReady, loaded, now, error, settings, progress, activity, reviews, refresh]);
+  }, [session, authReady, loaded, now, error, settings, progressRows, activityRows, reviewRows, refresh]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

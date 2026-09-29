@@ -10,6 +10,7 @@ import { AudioButtons, SoundHint } from "./player/Exercises";
 import { ConjugationTable } from "./Conjugation";
 import type { Exercise, GenOptions } from "@/lib/exercises";
 import { saveSession } from "@/lib/data";
+import { XP } from "@/lib/learning";
 import { lessonVerbs, lexicon, type GrammarNote, type LessonDef } from "@/content";
 import { canRecognize, canSpeak } from "@/lib/speech";
 
@@ -21,6 +22,8 @@ type Props = {
   xpBase: number;
   /** Fortschritt unter dieser ID speichern (z. B. Unit-Abschluss ohne eigene Lektion) */
   progressId?: string;
+  /** false = freies Üben, Wiederholungs-Boxen bleiben unverändert */
+  srs?: boolean;
 };
 
 type Phase = "intro" | "play" | "saving" | "done";
@@ -46,6 +49,7 @@ function Session({
   build,
   xpBase,
   progressId,
+  srs = true,
   restart,
   withIntro,
 }: Props & { restart: () => void; withIntro: boolean }) {
@@ -67,7 +71,7 @@ function Session({
   }
 
   async function onFinish(s: SessionSummary) {
-    const xp = xpBase + (s.score === 100 ? 5 : 0);
+    const xp = xpBase + (s.score === 100 ? XP.perfect : 0);
     setSummary({ ...s, xp });
     setPhase("saving");
     try {
@@ -75,6 +79,7 @@ function Session({
         results: s.results,
         xp,
         reviews: app.reviews,
+        srs,
         today: app.today,
         lesson: (() => {
           const id = progressId ?? lesson?.id;
@@ -98,7 +103,7 @@ function Session({
       <Player
         exercises={exercises}
         onExit={() => {
-          if (confirm("Lektion wirklich beenden? Der Fortschritt dieser Runde geht verloren.")) router.push("/");
+          if (confirm("Wirklich beenden? Der Fortschritt dieser Runde geht verloren.")) router.push("/");
         }}
         onFinish={onFinish}
       />
@@ -130,7 +135,9 @@ function Session({
           )}
           {summary.mistakes.length > 0 && (
             <div className="card mt-6 p-5">
-              <h2 className="mb-3 font-medium">Das kommt in der Wiederholung wieder</h2>
+              <h2 className="mb-3 font-medium">
+                {srs && !saveError ? "Das kommt in der Wiederholung wieder" : "Das solltest du dir noch einmal ansehen"}
+              </h2>
               <ul className="space-y-2 text-sm">
                 {summary.mistakes.map((m, i) => (
                   <li key={i} className="flex items-baseline justify-between gap-4 border-b border-line pb-2 last:border-0">
@@ -202,7 +209,7 @@ function Intro({ lesson, onStart, onExit }: { lesson: LessonDef; onStart: () => 
     <div className="mx-auto max-w-2xl px-4 py-10">
       <button onClick={onExit} className="text-sm text-muted hover:text-ink">← Übersicht</button>
       <p className="mt-6 text-sm uppercase tracking-wide text-muted">{lesson.subtitle}</p>
-      <h1 className="mt-1 font-serif text-4xl">{lesson.title}</h1>
+      <h1 className="mt-1 font-serif text-4xl" lang="pt-PT">{lesson.title}</h1>
 
       {lesson.grammar && (
         <div className="mt-8">
