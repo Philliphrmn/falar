@@ -95,6 +95,8 @@ export type VerbDef = {
   inf: string;
   de: string;
   present: PresentForms;
+  /** Deutsche Übersetzung der Präsensformen, z. B. ["ich heiße", "du heißt", …] */
+  presentDe?: PresentForms;
   /** Weitere Formen, die im Kurs vorkommen, z. B. Imperativ „siga“ oder „queria“ */
   extra?: { label: string; forms: [pt: string, de: string][] }[];
   /** Kurzer Hinweis, z. B. „unregelmäßig“ */

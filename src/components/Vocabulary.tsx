@@ -118,7 +118,7 @@ export function Vocabulary() {
       <h1 className="font-serif text-3xl">Vokabeln</h1>
       <p className="mt-2 text-muted">
         Alle Wörter des Kurses. Der Balken zeigt, wie sicher du ein Wort schon kannst. Verben stehen in der Grundform –
-        tippe darauf für alle Formen und deinen Fortschritt je Form.
+        ihr Balken fasst alle Formen zusammen, aufgeklappt siehst du jede Form.
       </p>
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <input className="input max-w-xs" placeholder="Suchen …" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -216,16 +216,11 @@ function VerbRow({
   expanded: boolean;
   toggle: () => void;
 }) {
-  // Vokabeln, die genau einer Form entsprechen, zeigen ihren Balken in der Tabelle;
-  // der Rest (Wendungen wie „gosto de“, „se faz favor“) steht darunter
+  // Wendungen wie „gosto de“ oder „tomar duche“ stehen unter der Tabelle
   const forms = new Set(formsOf(verb).map(lower));
-  const byForm = new Map(linked.filter((i) => forms.has(lower(i.pt))).map((i) => [lower(i.pt), i]));
   const phrases = linked.filter((i) => !forms.has(lower(i.pt)));
-  const formProgress = (pt: string) => {
-    const item = byForm.get(lower(pt));
-    return <Progress review={item ? reviews.get(item.id) : undefined} tracked={!!item} />;
-  };
-  const sound = verb.sound ?? byForm.get(lower(verb.inf))?.sound;
+  const sound = verb.sound ?? linked.find((i) => lower(i.pt) === lower(verb.inf))?.sound;
+  const progress = verbProgress(verb, linked, reviews);
 
   return (
     <li className="px-4 py-2.5">
@@ -236,37 +231,22 @@ function VerbRow({
           <span className="block text-sm text-muted">{verb.de}</span>
           <SoundHint sound={sound} className="text-xs" />
           <button type="button" className="mt-1 text-sm text-accent hover:underline" aria-expanded={expanded} onClick={toggle}>
-            {expanded ? "Formen ausblenden" : "Alle Formen und Fortschritt"}
+            {expanded ? "Formen ausblenden" : "Alle Formen"}
           </button>
         </span>
+        <Progress review={progress.review} title={progress.title} />
       </div>
       {expanded && (
         <div className="mt-3 space-y-4 rounded-xl border border-line bg-bg p-3">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="flex-1 text-muted">Konjugation geübt</span>
-            <Progress review={reviews.get(verbId(verb.inf))} />
-          </div>
-          {byForm.has(lower(verb.inf)) && (
-            <div className="flex items-center gap-3 text-sm">
-              <span className="flex-1">
-                <span className="text-muted">Grundform </span>
-                <span lang="pt-PT" className="font-medium">{verb.inf}</span>
-              </span>
-              {formProgress(verb.inf)}
-            </div>
-          )}
-          <ConjugationTable verb={verb} compact aside={formProgress} />
+          <ConjugationTable verb={verb} compact />
           {phrases.length > 0 && (
             <div>
               <p className="mb-1 text-xs uppercase tracking-wide text-muted">Wendungen</p>
               <ul>
                 {phrases.map((i) => (
-                  <li key={i.id} className="flex items-center gap-3 py-1">
-                    <span className="min-w-0 flex-1 px-1">
-                      <span lang="pt-PT" className="font-medium">{i.pt}</span>
-                      <span className="ml-2 text-xs text-muted">{i.de}</span>
-                    </span>
-                    <Progress review={reviews.get(i.id)} />
+                  <li key={i.id} className="flex items-center gap-3 px-1 py-1.5">
+                    <span lang="pt-PT" className="min-w-0 flex-1 font-medium">{i.pt}</span>
+                    <span className="shrink-0 text-right text-sm text-muted">{i.de}</span>
                   </li>
                 ))}
               </ul>
@@ -278,11 +258,30 @@ function VerbRow({
   );
 }
 
-/** Lernbalken; `tracked = false` heißt: diese Form wird nicht einzeln abgefragt */
-function Progress({ review, tracked = true }: { review?: ReviewState; tracked?: boolean }) {
-  if (!tracked) return <span className="w-20 shrink-0" />;
+/**
+ * Ein Balken fürs ganze Verb: Durchschnitt aus allem, was zu diesem Verb geübt wird –
+ * Konjugationsübung, einzelne Formen und Wendungen. Noch nicht Gelerntes zählt als 0.
+ */
+function verbProgress(verb: VerbDef, linked: Item[], reviews: Map<string, ReviewState>) {
+  const ids = [verbId(verb.inf), ...linked.map((i) => i.id)];
+  const states = ids.map((id) => reviews.get(id));
+  const seen = states.filter((r): r is ReviewState => !!r);
+  if (!seen.length) return { review: undefined, title: "noch nicht gelernt" };
+  const avg = seen.reduce((sum, r) => sum + r.box, 0) / ids.length;
+  const box = Math.min(MAX_BOX, Math.max(1, Math.round(avg)));
+  return {
+    review: { ...seen[0], box },
+    title: `${seen.length} von ${ids.length} Übungen zu ${verb.inf} begonnen · Ø Box ${avg.toFixed(1)} von ${MAX_BOX}`,
+  };
+}
+
+/** Lernbalken wie bei den Wörtern */
+function Progress({ review, title }: { review?: ReviewState; title?: string }) {
   return (
-    <span className="w-20 shrink-0 text-right" title={review ? `Box ${review.box} von ${MAX_BOX}` : "noch nicht gelernt"}>
+    <span
+      className="w-20 shrink-0 text-right"
+      title={title ?? (review ? `Box ${review.box} von ${MAX_BOX}` : "noch nicht gelernt")}
+    >
       <span className="block text-[11px] text-muted">{review ? boxLabel(review.box) : "–"}</span>
       <span className="mt-1 flex gap-0.5">
         {Array.from({ length: MAX_BOX }, (_, b) => (
