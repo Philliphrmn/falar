@@ -6,7 +6,16 @@ import { AudioButtons } from "./player/Exercises";
 import { IconSpeaker } from "./icons";
 
 /** Konjugationstabelle: Präsens mit allen Personen, dazu weitere Formen aus dem Kurs */
-export function ConjugationTable({ verb, compact = false }: { verb: VerbDef; compact?: boolean }) {
+export function ConjugationTable({
+  verb,
+  compact = false,
+  aside,
+}: {
+  verb: VerbDef;
+  compact?: boolean;
+  /** Zusatz rechts neben einer Form, z. B. der Lernfortschritt in der Vokabelliste */
+  aside?: (pt: string) => React.ReactNode;
+}) {
   return (
     <div className={compact ? "" : "card p-5"}>
       {!compact && (
@@ -20,20 +29,22 @@ export function ConjugationTable({ verb, compact = false }: { verb: VerbDef; com
       )}
       {verb.note && <p className="mb-3 text-sm text-muted">{verb.note}</p>}
       <p className="mb-1 text-xs uppercase tracking-wide text-muted">Präsens</p>
-      <ul className="grid gap-x-6 sm:grid-cols-2">
+      <ul className={aside ? "" : "grid gap-x-6 sm:grid-cols-2"}>
         {verb.present.map((form, i) => (
-          <li key={i}>
+          <li key={i} className="flex items-center gap-3">
             <FormButton pt={form} label={PERSONS[i]} de={PERSONS_DE[i]} />
+            {aside?.(form)}
           </li>
         ))}
       </ul>
       {verb.extra?.map((x) => (
         <div key={x.label} className="mt-3">
           <p className="mb-1 text-xs uppercase tracking-wide text-muted">{x.label}</p>
-          <ul className="grid gap-x-6 sm:grid-cols-2">
+          <ul className={aside ? "" : "grid gap-x-6 sm:grid-cols-2"}>
             {x.forms.map(([pt, de]) => (
-              <li key={pt}>
+              <li key={pt} className="flex items-center gap-3">
                 <FormButton pt={pt} de={de} />
+                {aside?.(pt)}
               </li>
             ))}
           </ul>
@@ -48,7 +59,7 @@ function FormButton({ pt, label, de }: { pt: string; label?: string; de: string 
     <button
       type="button"
       onClick={() => speak(pt)}
-      className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-2"
+      className="flex min-w-0 flex-1 items-baseline gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-2"
       aria-label={`${pt} anhören`}
     >
       <IconSpeaker className="h-3.5 w-3.5 shrink-0 self-center text-accent" />

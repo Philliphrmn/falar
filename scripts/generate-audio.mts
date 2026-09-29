@@ -65,8 +65,9 @@ for (const text of [...wanted.f, ...wanted.m]) {
   }
 }
 
+const LEADING_SILENCE = "300ms";
 const fileName = (text: string, voice: Voice) =>
-  `${voice}-${createHash("sha1").update(`${VOICES[voice]}|${text}`).digest("hex").slice(0, 16)}.mp3`;
+  `${voice}-${createHash("sha1").update(`${VOICES[voice]}|${LEADING_SILENCE}|${text}`).digest("hex").slice(0, 16)}.mp3`;
 
 const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -74,7 +75,9 @@ const escapeXml = (s: string) =>
 async function synthesize(text: string, voice: Voice): Promise<Buffer> {
   // Einzelwörter etwas langsamer, damit man sie gut nachsprechen kann
   const rate = text.includes(" ") ? "-5%" : "-12%";
-  const ssml = `<speak version="1.0" xml:lang="pt-PT"><voice name="${VOICES[voice]}"><prosody rate="${rate}">${escapeXml(text)}</prosody></voice></speak>`;
+  // Stille am Anfang: Viele Geräte (iPhone, Bluetooth) verschlucken die ersten Zehntelsekunden –
+  // sonst fehlt z. B. das t in „tu“ oder „tenho“
+  const ssml = `<speak version="1.0" xml:lang="pt-PT" xmlns:mstts="http://www.w3.org/2001/mstts"><voice name="${VOICES[voice]}"><mstts:silence type="Leading-exact" value="${LEADING_SILENCE}"/><prosody rate="${rate}">${escapeXml(text)}</prosody></voice></speak>`;
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
       method: "POST",
