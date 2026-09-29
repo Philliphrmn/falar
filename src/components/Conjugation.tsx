@@ -5,17 +5,11 @@ import { speak } from "@/lib/speech";
 import { AudioButtons } from "./player/Exercises";
 import { IconSpeaker } from "./icons";
 
-/** Konjugationstabelle: Präsens mit allen Personen, dazu weitere Formen aus dem Kurs */
-export function ConjugationTable({
-  verb,
-  compact = false,
-  aside,
-}: {
-  verb: VerbDef;
-  compact?: boolean;
-  /** Zusatz rechts neben einer Form, z. B. der Lernfortschritt in der Vokabelliste */
-  aside?: (pt: string) => React.ReactNode;
-}) {
+/**
+ * Konjugationstabelle: Präsens mit allen Personen, dazu weitere Formen aus dem Kurs.
+ * Jede Form steht in einer Zeile – links „eu chamo-me“, rechts die Übersetzung.
+ */
+export function ConjugationTable({ verb, compact = false }: { verb: VerbDef; compact?: boolean }) {
   return (
     <div className={compact ? "" : "card p-5"}>
       {!compact && (
@@ -29,22 +23,20 @@ export function ConjugationTable({
       )}
       {verb.note && <p className="mb-3 text-sm text-muted">{verb.note}</p>}
       <p className="mb-1 text-xs uppercase tracking-wide text-muted">Präsens</p>
-      <ul className={aside ? "" : "grid gap-x-6 sm:grid-cols-2"}>
+      <ul>
         {verb.present.map((form, i) => (
-          <li key={i} className="flex items-center gap-3">
-            <FormButton pt={form} label={PERSONS[i]} de={PERSONS_DE[i]} />
-            {aside?.(form)}
+          <li key={i}>
+            <FormLine pt={form} pronoun={PERSONS[i]} de={verb.presentDe?.[i] ?? PERSONS_DE[i]} />
           </li>
         ))}
       </ul>
       {verb.extra?.map((x) => (
         <div key={x.label} className="mt-3">
           <p className="mb-1 text-xs uppercase tracking-wide text-muted">{x.label}</p>
-          <ul className={aside ? "" : "grid gap-x-6 sm:grid-cols-2"}>
+          <ul>
             {x.forms.map(([pt, de]) => (
-              <li key={pt} className="flex items-center gap-3">
-                <FormButton pt={pt} de={de} />
-                {aside?.(pt)}
+              <li key={pt}>
+                <FormLine pt={pt} de={de} />
               </li>
             ))}
           </ul>
@@ -54,18 +46,20 @@ export function ConjugationTable({
   );
 }
 
-function FormButton({ pt, label, de }: { pt: string; label?: string; de: string }) {
+function FormLine({ pt, pronoun, de }: { pt: string; pronoun?: string; de: string }) {
   return (
     <button
       type="button"
       onClick={() => speak(pt)}
-      className="flex min-w-0 flex-1 items-baseline gap-2 rounded-lg px-1 py-1 text-left hover:bg-surface-2"
+      className="flex w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left hover:bg-surface-2"
       aria-label={`${pt} anhören`}
     >
-      <IconSpeaker className="h-3.5 w-3.5 shrink-0 self-center text-accent" />
-      {label && <span lang="pt-PT" className="w-28 shrink-0 text-sm text-muted">{label}</span>}
-      <span lang="pt-PT" className="font-medium">{pt}</span>
-      <span className="ml-auto text-right text-xs text-muted">{de}</span>
+      <IconSpeaker className="h-3.5 w-3.5 shrink-0 text-accent" />
+      <span lang="pt-PT" className="min-w-0 flex-1">
+        {pronoun && <span className="text-muted">{pronoun} </span>}
+        <span className="whitespace-nowrap font-medium">{pt}</span>
+      </span>
+      <span className="shrink-0 text-right text-sm text-muted">{de}</span>
     </button>
   );
 }
