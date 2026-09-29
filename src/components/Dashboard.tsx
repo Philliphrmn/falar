@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { allLessons, course, itemIndex, type UnitDef } from "@/content";
 import type { LessonProgress } from "@/lib/data";
 import { addDays, dayKey } from "@/lib/date";
 import { unitProgressId } from "@/lib/exercises";
 import { useApp } from "./AppProvider";
+import { ActivityCalendar } from "./ActivityCalendar";
 import { IconCheck, IconFlame, IconMic, IconRepeat } from "./icons";
 
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -46,6 +48,7 @@ const steps: Step[] = course.flatMap((u, ui) =>
 
 export function Dashboard() {
   const { progress, today, settings, streak, dueIds, activity, reviews, loaded } = useApp();
+  const [showCalendar, setShowCalendar] = useState(false);
   const nextStep = steps.find((st) => !progress.has(st.id));
   const todayXp = today?.xp ?? 0;
   const goal = settings.daily_goal_xp;
@@ -108,6 +111,19 @@ export function Dashboard() {
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            className="mt-3 text-xs text-muted hover:text-ink"
+            aria-expanded={showCalendar}
+            onClick={() => setShowCalendar((v) => !v)}
+          >
+            {showCalendar ? "Weniger anzeigen" : "Mehr anzeigen"}
+          </button>
+          {showCalendar && (
+            <div className="mt-3 border-t border-line pt-4">
+              <ActivityCalendar activity={activity} goal={goal} />
+            </div>
+          )}
         </div>
       </section>
 
